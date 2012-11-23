@@ -1,0 +1,45 @@
+Name:                   accelerate-fft
+Version:                0.13.0.0
+Cabal-version:          >= 1.6
+Tested-with:            GHC >= 7.0.3
+Build-type:             Simple
+
+Synopsis:               FFT using the Accelerate library
+Description:            Rank-polymorphic discrete Fourier transform (DFT),
+                        computed with a fast Fourier transform (FFT) algorithm
+                        using the Accelerate library
+
+License:                BSD3
+License-file:           LICENSE
+Author:                 Manuel M T Chakravarty,
+                        Gabriele Keller,
+                        Trevor L. McDonell
+Maintainer:             Manuel M T Chakravarty <chak@cse.unsw.edu.au>
+Homepage:               http://www.cse.unsw.edu.au/~chak/project/accelerate/
+Bug-reports:            https://github.com/AccelerateHS/accelerate/issues
+
+Category:               Compilers/Interpreters, Concurrency, Data
+Stability:              Experimental
+
+Library
+  Build-depends:        accelerate      == 0.13.*,
+                        base            == 4.*
+
+  Exposed-modules:      Data.Array.Accelerate.Math.Complex
+                        Data.Array.Accelerate.Math.DFT
+                        Data.Array.Accelerate.Math.DFT.Centre
+                        Data.Array.Accelerate.Math.DFT.Roots
+                        Data.Array.Accelerate.Math.FFT
+
+  ghc-options:          -O2 -Wall -funbox-strict-fields
+
+  Extensions:           FlexibleInstances
+                        IncoherentInstances
+                        ScopedTypeVariables
+                        TypeOperators
+                        TypeSynonymInstances
+
+Source-repository head
+  Type:                 git
+  Location:             git://github.com/AccelerateHS/accelerate-fft.git
+
