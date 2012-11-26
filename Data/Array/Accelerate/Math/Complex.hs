@@ -14,13 +14,13 @@ import Data.Array.Accelerate                    as A
 type Complex a = (a, a)
 
 instance (Elt a, IsFloating a) => Num (Exp (Complex a)) where
-  c1 + c2       = lift ( on (+) A.fst c1 c2, on (+) A.snd c1 c2 )
-  c1 - c2       = lift ( on (-) A.fst c1 c2, on (-) A.snd c1 c2 )
+  c1 + c2       = lift ( on (+) real c1 c2, on (+) imag c1 c2 )
+  c1 - c2       = lift ( on (-) real c1 c2, on (-) imag c1 c2 )
   c1 * c2       = let (x,  y)   = unlift c1
                       (x', y')  = unlift c2     :: Complex (Exp a)
                   in lift (x*x'-y*y', x*y'+y*x')
 
-  negate c      = lift ( negate (A.fst c), negate (A.snd c) )
+  negate c      = lift ( negate (real c), negate (imag c) )
   abs z         = lift ( magnitude z, constant 0 )
   signum z      = let r         = magnitude z
                       (x, y)    = unlift z
@@ -58,4 +58,22 @@ phase :: (Elt a, IsFloating a) => Exp (Complex a) -> Exp a
 phase c =
   let (x, y) = unlift c
   in atan2 y x
+
+
+-- | Return the real part of a complex number
+--
+real :: Elt a => Exp (Complex a) -> Exp a
+real = A.fst
+
+-- | Return the imaginary part of a complex number
+--
+imag :: Elt a => Exp (Complex a) -> Exp a
+imag = A.snd
+
+-- | Return the complex conjugate of a complex number, defined as
+--
+-- > conj(Z) = X - iY
+--
+conj :: (Elt a, IsNum a) => Exp (Complex a) -> Exp (Complex a)
+conj z = lift (real z, - imag z)
 
