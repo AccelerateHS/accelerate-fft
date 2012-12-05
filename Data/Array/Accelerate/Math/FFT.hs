@@ -57,14 +57,9 @@ fft1D :: (Elt e, IsFloating e)
       -> Vector (Complex e)
       -> Acc (Vector (Complex e))
 fft1D mode vec
-  = let Z :. len        = arrayShape vec
+  = let Z :. len = arrayShape vec
     in
-    if P.not (isPow2 len)
-       then error $ unlines
-              [ "Data.Array.Accelerate.FFT: fft1D"
-              , "  Array dimensions must be powers of two, but are: " ++ showShape (arrayShape vec) ]
-
-       else fft1D' mode len (use vec)
+    fft1D' mode len (use vec)
 
 fft1D' :: forall e. (Elt e, IsFloating e)
        => Mode
@@ -75,9 +70,15 @@ fft1D' mode len vec
   = let sign    = signOfMode mode :: e
         scale   = P.fromIntegral len
         vec'    = fft sign Z len vec
-    in case mode of
-         Inverse -> A.map (/scale) vec'
-         _       -> vec'
+    in
+    if P.not (isPow2 len)
+       then error $ unlines
+              [ "Data.Array.Accelerate.FFT: fft1D"
+              , "  Array dimensions must be powers of two, but are: " ++ showShape (Z:.len) ]
+
+       else case mode of
+                 Inverse -> A.map (/scale) vec'
+                 _       -> vec'
 
 
 -- Matrix Transform
@@ -91,14 +92,9 @@ fft2D :: (Elt e, IsFloating e)
       -> Array DIM2 (Complex e)
       -> Acc (Array DIM2 (Complex e))
 fft2D mode arr
-  = let Z :. height :. width    = arrayShape arr
+  = let Z :. height :. width = arrayShape arr
     in
-    if P.not (isPow2 width && isPow2 height)
-       then error $ unlines
-              [ "Data.Array.Accelerate.FFT: fft2D"
-              , "  Array dimensions must be powers of two, but are: " ++ showShape (arrayShape arr) ]
-
-       else fft2D' mode width height (use arr)
+    fft2D' mode width height (use arr)
 
 
 fft2D' :: forall e. (Elt e, IsFloating e)
@@ -113,9 +109,15 @@ fft2D' mode width height arr
         arr'    = A.transpose . fft sign (Z:.width)  height
                 $ A.transpose . fft sign (Z:.height) width
                 $ arr
-    in case mode of
-         Inverse -> A.map (/scale) arr'
-         _       -> arr'
+    in
+    if P.not (isPow2 width && isPow2 height)
+       then error $ unlines
+              [ "Data.Array.Accelerate.FFT: fft2D"
+              , "  Array dimensions must be powers of two, but are: " ++ showShape (Z:.height:.width) ]
+
+       else case mode of
+                 Inverse -> A.map (/scale) arr'
+                 _       -> arr'
 
 
 -- Cube Transform
@@ -129,14 +131,9 @@ fft3D :: (Elt e, IsFloating e)
       -> Array DIM3 (Complex e)
       -> Acc (Array DIM3 (Complex e))
 fft3D mode arr
-  = let Z :. depth :. height :. width   = arrayShape arr
+  = let Z :. depth :. height :. width = arrayShape arr
     in
-    if P.not (isPow2 width && isPow2 height && isPow2 depth)
-       then error $ unlines
-              [ "Data.Array.Accelerate.FFT: fft3D"
-              , "  Array dimensions must be powers of two, but are: " ++ showShape (arrayShape arr) ]
-
-       else fft3D' mode width height depth (use arr)
+    fft3D' mode width height depth (use arr)
 
 
 fft3D' :: forall e. (Elt e, IsFloating e)
@@ -153,9 +150,15 @@ fft3D' mode width height depth arr
                 $ rotate3D . fft sign (Z:.height:.width)  depth
                 $ rotate3D . fft sign (Z:.depth :.height) width
                 $ arr
-    in case mode of
-         Inverse -> A.map (/scale) arr'
-         _       -> arr'
+    in
+    if P.not (isPow2 width && isPow2 height && isPow2 depth)
+       then error $ unlines
+              [ "Data.Array.Accelerate.FFT: fft3D"
+              , "  Array dimensions must be powers of two, but are: " ++ showShape (Z:.depth:.height:.width) ]
+
+       else case mode of
+                 Inverse -> A.map (/scale) arr'
+                 _       -> arr'
 
 
 
