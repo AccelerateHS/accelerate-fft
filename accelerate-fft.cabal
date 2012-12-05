@@ -26,10 +26,10 @@ Library
                         base            == 4.*
 
   Exposed-modules:      Data.Array.Accelerate.Math.Complex
+                        Data.Array.Accelerate.Math.FFT
                         Data.Array.Accelerate.Math.DFT
                         Data.Array.Accelerate.Math.DFT.Centre
                         Data.Array.Accelerate.Math.DFT.Roots
-                        Data.Array.Accelerate.Math.FFT
 
   ghc-options:          -O2 -Wall -funbox-strict-fields
 
