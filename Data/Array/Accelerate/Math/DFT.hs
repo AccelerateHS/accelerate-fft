@@ -18,8 +18,8 @@
 --
 -- The `dft` and `idft` functions compute the roots of unity as needed. If you
 -- need to transform several arrays with the same extent than it is faster to
--- compute the roots once using `rofu` or `irofu` respectively, then call `dftG`
--- directly.
+-- compute the roots once using `rootsOfUnity` or `inverseRootsOfUnity`
+-- respectively, then call `dftG` directly.
 --
 -- You can also compute single values of the transform using `dftGS`
 --
@@ -40,7 +40,7 @@ import Data.Array.Accelerate.Math.Complex
 dft :: (Shape sh, Slice sh, Elt e, IsFloating e)
     => Acc (Array (sh:.Int) (Complex e))
     -> Acc (Array (sh:.Int) (Complex e))
-dft v = dftG (rofu (shape v)) v
+dft v = dftG (rootsOfUnity (shape v)) v
 
 
 -- | Compute the inverse DFT along the low order dimension of an array
@@ -51,7 +51,7 @@ idft :: (Shape sh, Slice sh, Elt e, IsFloating e)
 idft v
   = let sh      = shape v
         n       = indexHead sh
-        roots   = irofu sh
+        roots   = inverseRootsOfUnity sh
         scale   = lift (A.fromIntegral n, constant 0)
     in
     A.map (/scale) $ dftG roots v

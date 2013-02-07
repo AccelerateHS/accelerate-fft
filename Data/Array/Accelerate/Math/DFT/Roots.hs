@@ -10,7 +10,7 @@
 --
 module Data.Array.Accelerate.Math.DFT.Roots (
 
-  rofu, irofu,
+  rootsOfUnity, inverseRootsOfUnity,
 
 ) where
 
@@ -21,10 +21,11 @@ import Data.Array.Accelerate.Math.Complex
 
 -- | Calculate the roots of unity for the forward transform
 --
-rofu :: (Elt e, IsFloating e, Shape sh, Slice sh)
-     => Exp (sh :. Int)
-     -> Acc (Array (sh:.Int) (Complex e))
-rofu sh =
+rootsOfUnity
+    :: (Elt e, IsFloating e, Shape sh, Slice sh)
+    => Exp (sh :. Int)
+    -> Acc (Array (sh:.Int) (Complex e))
+rootsOfUnity sh =
   let n = A.fromIntegral (A.indexHead sh)
   in
   A.generate sh (\ix -> let i = A.fromIntegral (A.indexHead ix)
@@ -35,10 +36,11 @@ rofu sh =
 
 -- | Calculate the roots of unity for an inverse transform
 --
-irofu :: (Elt e, IsFloating e, Shape sh, Slice sh)
-      => Exp (sh :. Int)
-      -> Acc (Array (sh:.Int) (Complex e))
-irofu sh =
+inverseRootsOfUnity
+    :: (Elt e, IsFloating e, Shape sh, Slice sh)
+    => Exp (sh :. Int)
+    -> Acc (Array (sh:.Int) (Complex e))
+inverseRootsOfUnity sh =
   let n = A.fromIntegral (A.indexHead sh)
   in
   A.generate sh (\ix -> let i = A.fromIntegral (A.indexHead ix)
