@@ -8,12 +8,18 @@
 -- Stability   : experimental
 -- Portability : non-portable (GHC extensions)
 --
--- Applying these transforms to the input of a DFT causes the output to be
--- centred so that the zero frequency is in the middle.
+-- These transforms allow the centering of the frequency domain of a DFT such
+-- that the the zero frequency is in the middle. The centering transform, when
+-- performed on the input of a DFT, will cause zero frequency to be centred in
+-- the middle. The shifting transform however takes the output of a DFT to
+-- give the same result. Therefore the relationship between the two is:
+--
+--   fft(center(X)) = shift(fft(X))
 --
 module Data.Array.Accelerate.Math.DFT.Centre (
 
   centre1D, centre2D, centre3D,
+  fftShift1D, fftShift2D, fftShift3D,
 
 ) where
 
@@ -52,3 +58,40 @@ centre3D arr
                (\ix -> let Z :. z :. y :. x = unlift ix :: Z :. Exp Int :. Exp Int :. Exp Int
                        in  lift (-1 ** A.fromIntegral (z + y + x), A.constant 0) * arr!ix)
 
+-- | Apply the shifting transform to a vector
+fftShift1D :: Elt e => Acc (Vector e) -> Acc (Vector e)
+fftShift1D arr
+  = A.backpermute (A.shape arr) p arr
+  where
+    p ix
+      = let Z:.x = unlift ix :: Z :. Exp Int
+        in index1 (x <* mw ? (x + mw, x - mw))
+    Z:.w    = unlift (A.shape arr)
+    mw      = w `div` 2
+
+
+-- | Apply the shifting transform to a 2D array
+fftShift2D :: Elt e => Acc (Array DIM2 e) -> Acc (Array DIM2 e)
+fftShift2D arr
+  = A.backpermute (A.shape arr) p arr
+  where
+    p ix
+      = let Z:.y:.x = unlift ix :: Z :. Exp Int :. Exp Int
+        in index2 (y <* mh ? (y + mh, y - mh))
+                  (x <* mw ? (x + mw, x - mw))
+    Z:.h:.w = unlift (A.shape arr)
+    (mh,mw) = (h `div` 2, w `div` 2)
+
+-- | Apply the shifting transform to a 3D array
+fftShift3D :: Elt e => Acc (Array DIM3 e) -> Acc (Array DIM3 e)
+fftShift3D arr
+  = A.backpermute (A.shape arr) p arr
+  where
+    p ix
+      = let Z:.z:.y:.x = unlift ix :: Z :. Exp Int :. Exp Int :. Exp Int
+        in index3 (z <* md ? (z + md, z - md))
+                  (y <* mh ? (y + mh, y - mh))
+                  (x <* mw ? (x + mw, x - mw))
+    Z:.h:.w:.d = unlift (A.shape arr)
+    (mh,mw,md) = (h `div` 2, w `div` 2, d `div` 2)
+    index3 i j k = lift (Z:.i:.j:.k)

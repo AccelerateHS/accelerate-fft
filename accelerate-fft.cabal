@@ -21,6 +21,11 @@ Bug-reports:            https://github.com/AccelerateHS/accelerate/issues
 Category:               Compilers/Interpreters, Concurrency, Data
 Stability:              Experimental
 
+Flag cuda
+  Description:          Enable support for using CUFFT via the CUDA backend's
+                        FFI
+  Default:              True
+
 Library
   Build-depends:        accelerate      == 0.13.*,
                         base            == 4.*
@@ -32,6 +37,12 @@ Library
                         Data.Array.Accelerate.Math.DFT.Roots
 
   ghc-options:          -O2 -Wall -funbox-strict-fields
+
+  if flag(cuda)
+    CPP-options:        -DACCELERATE_CUDA_BACKEND
+    Build-depends:      accelerate-cuda                 >= 0.13,
+                        cuda                            >= 0.5,
+                        cufft                           >= 0.1
 
   Extensions:           FlexibleInstances
                         IncoherentInstances
