@@ -14,12 +14,12 @@
 -- the middle. The shifting transform however takes the output of a DFT to
 -- give the same result. Therefore the relationship between the two is:
 --
---   fft(center(X)) = shift(fft(X))
+-- > fft(center(X)) = shift(fft(X))
 --
 module Data.Array.Accelerate.Math.DFT.Centre (
 
   centre1D, centre2D, centre3D,
-  fftShift1D, fftShift2D, fftShift3D,
+  shift1D,  shift2D,  shift3D,
 
 ) where
 
@@ -58,9 +58,11 @@ centre3D arr
                (\ix -> let Z :. z :. y :. x = unlift ix :: Z :. Exp Int :. Exp Int :. Exp Int
                        in  lift (-1 ** A.fromIntegral (z + y + x), A.constant 0) * arr!ix)
 
+
 -- | Apply the shifting transform to a vector
-fftShift1D :: Elt e => Acc (Vector e) -> Acc (Vector e)
-fftShift1D arr
+--
+shift1D :: Elt e => Acc (Vector e) -> Acc (Vector e)
+shift1D arr
   = A.backpermute (A.shape arr) p arr
   where
     p ix
@@ -71,8 +73,9 @@ fftShift1D arr
 
 
 -- | Apply the shifting transform to a 2D array
-fftShift2D :: Elt e => Acc (Array DIM2 e) -> Acc (Array DIM2 e)
-fftShift2D arr
+--
+shift2D :: Elt e => Acc (Array DIM2 e) -> Acc (Array DIM2 e)
+shift2D arr
   = A.backpermute (A.shape arr) p arr
   where
     p ix
@@ -82,9 +85,11 @@ fftShift2D arr
     Z:.h:.w = unlift (A.shape arr)
     (mh,mw) = (h `div` 2, w `div` 2)
 
+
 -- | Apply the shifting transform to a 3D array
-fftShift3D :: Elt e => Acc (Array DIM3 e) -> Acc (Array DIM3 e)
-fftShift3D arr
+--
+shift3D :: Elt e => Acc (Array DIM3 e) -> Acc (Array DIM3 e)
+shift3D arr
   = A.backpermute (A.shape arr) p arr
   where
     p ix
@@ -95,3 +100,4 @@ fftShift3D arr
     Z:.h:.w:.d = unlift (A.shape arr)
     (mh,mw,md) = (h `div` 2, w `div` 2, d `div` 2)
     index3 i j k = lift (Z:.i:.j:.k)
+
