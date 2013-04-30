@@ -1,13 +1,13 @@
-{-# LANGUAGE CPP                 #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies        #-}
-{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE CPP                      #-}
+{-# LANGUAGE EmptyDataDecls           #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE EmptyDataDecls      #-}
-{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE GADTs                    #-}
+{-# LANGUAGE ScopedTypeVariables      #-}
+{-# LANGUAGE TypeFamilies             #-}
+{-# LANGUAGE TypeOperators            #-}
 -- |
 -- Module      : Data.Array.Accelerate.Math.FFT
--- Copyright   : [2012] Manuel M T Chakravarty, Gabriele Keller, Trevor L. McDonell
+-- Copyright   : [2012..2013] Manuel M T Chakravarty, Gabriele Keller, Trevor L. McDonell, Robert Clifton-Everest
 -- License     : BSD3
 --
 -- Maintainer  : Manuel M T Chakravarty <chak@cse.unsw.edu.au>
@@ -40,9 +40,9 @@ import Data.Array.Accelerate.CUDA.Foreign
 import Data.Array.Accelerate.Array.Sugar        as S ( shapeToList, shape, EltRepr )
 import Data.Array.Accelerate.Type
 
+import Data.Functor
 import Foreign.CUDA.FFT
 import qualified Foreign.CUDA.Driver            as CUDA hiding (free)
-import Data.Functor
 #endif
 
 import Data.Bits
@@ -251,6 +251,7 @@ fft sign sh sz arr = go sz 0 1
 -- FFT using the CUFFT library to enable high performance for the CUDA backend of
 -- Accelerate. The implementation works on all arrays of rank less than or equal
 -- to 3. The result is un-normalised.
+--
 cudaFFT :: forall e sh.(Shape sh, Elt e, IsFloating e)
         => Mode
         -> sh
@@ -263,6 +264,7 @@ cudaFFT mode sh p arr = deinterleave sh (foreignAcc ff pureAcc (interleave arr))
     -- Unfortunately the pure version of the function needs to be wrapped in
     -- interleave and deinterleave to match how the foreign version works.
     -- TODO: Do the interleaving and deinterleaving in foreignFFT
+    --
     pureAcc     = interleave . p . deinterleave sh
 
     dir :: Int
