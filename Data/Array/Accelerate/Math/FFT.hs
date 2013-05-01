@@ -5,6 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables      #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
+{-# LANGUAGE ViewPatterns             #-}
 -- |
 -- Module      : Data.Array.Accelerate.Math.FFT
 -- Copyright   : [2012..2013] Manuel M T Chakravarty, Gabriele Keller, Trevor L. McDonell, Robert Clifton-Everest
@@ -53,7 +54,7 @@ data Mode = Forward | Reverse | Inverse
 isPow2 :: Int -> Bool
 isPow2 x = x .&. (x-1) == 0
 
-signOfMode :: IsFloating a => Mode -> a
+signOfMode :: Num a => Mode -> a
 signOfMode m
   = case m of
       Forward   -> -1
@@ -252,32 +253,37 @@ fft sign sh sz arr = go sz 0 1
 -- Accelerate. The implementation works on all arrays of rank less than or equal
 -- to 3. The result is un-normalised.
 --
-cudaFFT :: forall e sh.(Shape sh, Elt e, IsFloating e)
+cudaFFT :: forall e sh. (Shape sh, Elt e, IsFloating e)
         => Mode
         -> sh
         -> (Acc (Array sh (Complex e)) -> Acc (Array sh (Complex e)))
         -> Acc (Array sh (Complex e))
         -> Acc (Array sh (Complex e))
-cudaFFT mode sh p arr = deinterleave sh (foreignAcc ff pureAcc (interleave arr))
+cudaFFT mode sh p arr = deinterleave sh (foreignAcc ff pure (interleave arr))
   where
     ff          = cudaAcc foreignFFT
     -- Unfortunately the pure version of the function needs to be wrapped in
     -- interleave and deinterleave to match how the foreign version works.
-    -- TODO: Do the interleaving and deinterleaving in foreignFFT
     --
-    pureAcc     = interleave . p . deinterleave sh
-
-    dir :: Int
-    dir = P.round (signOfMode mode :: Float)
+    -- RCE: Do the interleaving and deinterleaving in foreignFFT
+    --
+    -- TLM: The interleaving might get fused into other parts of the
+    --      computation and thus be okay. We should really support multi types
+    --      such as float2 instead.
+    --
+    pure        = interleave . p . deinterleave sh
+    sign        = signOfMode mode :: Int
 
     foreignFFT :: Array DIM1 e -> CIO (Array DIM1 e)
     foreignFFT arr' = do
       -- Create the plan
+      -- TODO: Cache this.
+      --
       hndl <- liftIO $
         case shapeToList sh of
-          [width]                -> plan1D               width types 1
-          [height, width]        -> plan2D        height width types
-          [depth, height, width] -> plan3D depth  height width types
+          [width]                -> plan1D              width types 1
+          [height, width]        -> plan2D       height width types
+          [depth, height, width] -> plan3D depth height width types
           _                      -> error "Accelerate-fft cannot use CUFFT for arrays of dimensions higher than 3"
 
       output <- allocateArray (S.shape arr')
@@ -333,20 +339,32 @@ append xs ys
              (\ix -> let sz :. i = unlift ix :: Exp sh :. Exp Int
                      in  i <* n ? (xs ! lift (sz:.i), ys ! lift (sz:.i-n) ))
 
--- Interleave the real and imaginary components in a complex array
---
-interleave :: (Shape sh, Elt e) => Acc (Array sh (Complex e)) -> Acc (Array DIM1 e)
-interleave arr = generate (index1 $ 2 * A.size arr) gen
-  where
-    gen i = ((i' `mod` 2) ==* 0) ? (real v, imag v)
-      where
-        i' = indexHead i
-        v  = arr A.!! (i' `div` 2)
 
--- Deinterleave an array into a complex array. Assumes the array is even in length
+#ifdef ACCELERATE_CUDA_BACKEND
+{-# RULES
+  "interleave/deinterleave" forall sh x. deinterleave sh (interleave x) = x;
+  "deinterleave/interleave" forall sh x. interleave (deinterleave sh x) = x
+ #-}
+
+-- Interleave the real and imaginary components in a complex array and produce a
+-- flattened vector. This allows us to mimic the float2 structure used by CUFFT
+-- to store complex numbers.
 --
-deinterleave :: (Shape sh, Elt e) => sh -> Acc (Array DIM1 e) -> Acc (Array sh (Complex e))
-deinterleave sh arr = generate sh' (\ix -> lift (arr A.!! (toIndex sh' ix * 2), arr A.!! (toIndex sh' ix * 2 + 1)))
+interleave :: (Shape sh, Elt e) => Acc (Array sh (Complex e)) -> Acc (Vector e)
+interleave arr = generate sh swizzle
   where
-    sh' = constant sh
+    sh          = index1 (2 * A.size arr)
+    swizzle ix  =
+      let i = indexHead ix
+          v = arr A.!! (i `div` 2)
+      in
+      i `mod` 2 ==* 0 ? (real v, imag v)
+
+-- Deinterleave a vector into a complex array. Assumes the array is even in length.
+--
+deinterleave :: (Shape sh, Elt e) => sh -> Acc (Vector e) -> Acc (Array sh (Complex e))
+deinterleave (constant -> sh) arr =
+  generate sh (\ix -> let i = toIndex sh ix * 2
+                      in  lift (arr A.!! i, arr A.!! (i+1)))
+#endif
 
