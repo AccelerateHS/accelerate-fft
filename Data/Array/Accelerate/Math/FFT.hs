@@ -293,30 +293,29 @@ cudaFFT mode sh p arr = deinterleave sh (foreignAcc ff pureAcc (interleave arr))
 
     types
       = case (floatingType :: FloatingType e) of
-          TypeFloat   _ -> C2C
-          TypeDouble  _ -> Z2Z
-          _             -> unsupportedError
+          TypeFloat{}   -> C2C
+          TypeDouble{}  -> Z2Z
+          TypeCFloat{}  -> C2C
+          TypeCDouble{} -> Z2Z
 
     execute :: Handle -> CUDA.DevicePtr e -> CUDA.DevicePtr e -> IO ()
     execute hndl iptr optr
       = case (floatingType :: FloatingType e) of
-          TypeFloat   _ -> execC2C hndl iptr optr dir
-          TypeDouble  _ -> execZ2Z hndl iptr optr dir
-          _             -> unsupportedError
+          TypeFloat{}   -> execC2C hndl iptr optr sign
+          TypeDouble{}  -> execZ2Z hndl iptr optr sign
+          TypeCFloat{}  -> execC2C hndl (CUDA.castDevPtr iptr) (CUDA.castDevPtr optr) sign
+          TypeCDouble{} -> execZ2Z hndl (CUDA.castDevPtr iptr) (CUDA.castDevPtr optr) sign
 
-    floatingDevicePtr :: Array DIM1 e -> CIO (CUDA.DevicePtr e)
-    floatingDevicePtr
+    floatingDevicePtr :: Vector e -> CIO (CUDA.DevicePtr e)
+    floatingDevicePtr v
       = case (floatingType :: FloatingType e) of
-          TypeFloat   _ -> singleDevicePtr
-          TypeDouble  _ -> singleDevicePtr
-          _             -> unsupportedError
+          TypeFloat{}   -> singleDevicePtr v
+          TypeDouble{}  -> singleDevicePtr v
+          TypeCFloat{}  -> CUDA.castDevPtr <$> singleDevicePtr v
+          TypeCDouble{} -> CUDA.castDevPtr <$> singleDevicePtr v
 
-    singleDevicePtr :: DevicePtrs (EltRepr e) ~ ((),CUDA.DevicePtr e)
-                    => Array DIM1 e
-                    -> CIO (CUDA.DevicePtr e)
-    singleDevicePtr arr' = P.snd <$> devicePtrsOfArray arr'
-
-    unsupportedError = error "CFloat and CDouble are not currently supported by accelerate"
+    singleDevicePtr :: DevicePtrs (EltRepr e) ~ ((),CUDA.DevicePtr b) => Vector e -> CIO (CUDA.DevicePtr b)
+    singleDevicePtr v = P.snd <$> devicePtrsOfArray v
 #endif
 
 -- Append two arrays. Doesn't do proper bounds checking or intersection...
