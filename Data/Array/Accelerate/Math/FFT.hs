@@ -135,7 +135,7 @@ fft2D' mode width height arr
         arr'    = fft' arr
 #endif
         fft' a  = A.transpose . fft sign (Z:.width)  height
-                $ A.transpose . fft sign (Z:.height) width
+              >-> A.transpose . fft sign (Z:.height) width
                 $ a
     in
     if P.not (isPow2 width && isPow2 height)
@@ -181,8 +181,8 @@ fft3D' mode width height depth arr
         arr'    = fft' arr
 #endif
         fft' a  = rotate3D . fft sign (Z:.width :.depth)  height
-                $ rotate3D . fft sign (Z:.height:.width)  depth
-                $ rotate3D . fft sign (Z:.depth :.height) width
+              >-> rotate3D . fft sign (Z:.height:.width)  depth
+              >-> rotate3D . fft sign (Z:.depth :.height) width
                 $ a
     in
     if P.not (isPow2 width && isPow2 height && isPow2 depth)
@@ -225,24 +225,28 @@ fft sign sh sz arr = go sz 0 1
       = A.generate (constant (sh :. len)) swivel
 
       | otherwise
-      = combine len
+      = combine
           (go (len `div` 2) offset            (stride * 2))
           (go (len `div` 2) (offset + stride) (stride * 2))
 
       where
+        len'    = the (unit (constant len))
+        offset' = the (unit (constant offset))
+        stride' = the (unit (constant stride))
+
         swivel ix =
           let sh' :. sz' = unlift ix :: Exp sh :. Exp Int
           in
-          sz' ==* 0 ? ( (arr ! lift (sh' :. offset)) + (arr ! lift (sh' :. offset + stride))
-          {-  ==* 1-} , (arr ! lift (sh' :. offset)) - (arr ! lift (sh' :. offset + stride)) )
+          sz' ==* 0 ? ( (arr ! lift (sh' :. offset')) + (arr ! lift (sh' :. offset' + stride'))
+          {-  ==* 1-} , (arr ! lift (sh' :. offset')) - (arr ! lift (sh' :. offset' + stride')) )
 
-        combine len' evens odds =
+        combine evens odds =
           let odds' = A.generate (A.shape odds) (\ix -> twiddle len' (indexHead ix) * odds!ix)
           in
           append (A.zipWith (+) evens odds') (A.zipWith (-) evens odds')
 
         twiddle n' i' =
-          let n = P.fromIntegral n'
+          let n = A.fromIntegral n'
               i = A.fromIntegral i'
               k = 2*pi*i/n
           in
