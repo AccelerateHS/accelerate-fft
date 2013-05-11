@@ -31,8 +31,8 @@ Flag cuda
   Default:              True
 
 Library
-  Build-depends:        accelerate      == 0.13.*,
-                        base            == 4.*
+  Build-depends:        accelerate              == 0.13.*,
+                        base                    == 4.*
 
   Exposed-modules:      Data.Array.Accelerate.Math.Complex
                         Data.Array.Accelerate.Math.FFT
@@ -44,9 +44,9 @@ Library
 
   if flag(cuda)
     CPP-options:        -DACCELERATE_CUDA_BACKEND
-    Build-depends:      accelerate-cuda                 >= 0.13,
                         cuda                            >= 0.5,
                         cufft                           >= 0.1
+    Build-depends:      accelerate-cuda         == 0.13.*,
 
   -- Don't add the extensions list here. Instead, place individual LANGUAGE
   -- pragmas in the files that require a specific extension. This means the
