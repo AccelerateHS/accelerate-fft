@@ -1,13 +1,17 @@
 Name:                   accelerate-fft
 Version:                0.13.0.0
 Cabal-version:          >= 1.6
-Tested-with:            GHC >= 7.0.3
+Tested-with:            GHC >= 7.4
 Build-type:             Simple
 
 Synopsis:               FFT using the Accelerate library
-Description:            Rank-polymorphic discrete Fourier transform (DFT),
-                        computed with a fast Fourier transform (FFT) algorithm
-                        using the Accelerate library
+Description:
+  Rank-polymorphic discrete Fourier transform (DFT), computed with a fast
+  Fourier transform (FFT) algorithm using the Accelerate library
+  .
+  Refer to the main /Accelerate/ package for more information:
+  <http://hackage.haskell.org/package/accelerate>
+  .
 
 License:                BSD3
 License-file:           LICENSE
@@ -15,7 +19,7 @@ Author:                 Manuel M T Chakravarty,
                         Gabriele Keller,
                         Trevor L. McDonell
 Maintainer:             Manuel M T Chakravarty <chak@cse.unsw.edu.au>
-Homepage:               http://www.cse.unsw.edu.au/~chak/project/accelerate/
+Homepage:               https://github.com/AccelerateHS/accelerate-fft
 Bug-reports:            https://github.com/AccelerateHS/accelerate/issues
 
 Category:               Compilers/Interpreters, Concurrency, Data
