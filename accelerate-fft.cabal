@@ -1,5 +1,5 @@
 Name:                   accelerate-fft
-Version:                0.13.0.0
+Version:                0.14.0.0
 Cabal-version:          >= 1.6
 Tested-with:            GHC >= 7.4
 Build-type:             Simple
@@ -31,7 +31,7 @@ Flag cuda
   Default:              True
 
 Library
-  Build-depends:        accelerate              == 0.13.*,
+  Build-depends:        accelerate              == 0.14.*,
                         base                    == 4.*
 
   Exposed-modules:      Data.Array.Accelerate.Math.Complex
@@ -44,9 +44,9 @@ Library
 
   if flag(cuda)
     CPP-options:        -DACCELERATE_CUDA_BACKEND
-                        cuda                            >= 0.5,
-                        cufft                           >= 0.1
-    Build-depends:      accelerate-cuda         == 0.13.*,
+                        cuda                    >= 0.5,
+                        cufft                   >= 0.1
+    Build-depends:      accelerate-cuda         == 0.14.*,
 
   -- Don't add the extensions list here. Instead, place individual LANGUAGE
   -- pragmas in the files that require a specific extension. This means the
