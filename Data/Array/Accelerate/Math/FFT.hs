@@ -369,6 +369,6 @@ interleave arr = generate sh swizzle
 deinterleave :: (Shape sh, Elt e) => sh -> Acc (Vector e) -> Acc (Array sh (Complex e))
 deinterleave (constant -> sh) arr =
   generate sh (\ix -> let i = toIndex sh ix * 2
-                      in  lift (arr A.!! i, arr A.!! (i+1)))
+                      in  lift (arr A.!! i :+ arr A.!! (i+1)))
 #endif
 
