@@ -52,7 +52,7 @@ idft v
   = let sh      = shape v
         n       = indexHead sh
         roots   = inverseRootsOfUnity sh
-        scale   = lift (A.fromIntegral n, constant 0)
+        scale   = lift (A.fromIntegral n :+ constant 0)
     in
     A.map (/scale) $ dftG roots v
 
@@ -68,7 +68,7 @@ dftG :: forall sh e. (Shape sh, Slice sh, Elt e, IsFloating e)
      -> Acc (Array (sh:.Int) (Complex e))       -- ^ input array
      -> Acc (Array (sh:.Int) (Complex e))
 dftG roots arr
-  = A.fold (+) (constant (0,0))
+  = A.fold (+) (constant (0 :+ 0))
   $ A.zipWith (*) arr' roots'
   where
     base        = shape arr
@@ -106,5 +106,5 @@ dftGS ix roots arr
                              (\ix' -> let sh :. n = unlift ix'  :: Exp sh :. Exp Int
                                       in  roots ! lift (sh :. (k*n) `mod` l))
     in
-    A.foldAll (+) (constant (0,0)) $ A.zipWith (*) arr roots'
+    A.foldAll (+) (constant (0 :+ 0)) $ A.zipWith (*) arr roots'
 

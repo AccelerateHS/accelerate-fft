@@ -36,7 +36,7 @@ centre1D :: (Elt e, IsFloating e)
 centre1D arr
   = A.generate (shape arr)
                (\ix -> let Z :. x = unlift ix           :: Z :. Exp Int
-                       in  lift (-1 ** A.fromIntegral x, A.constant 0) * arr!ix)
+                       in  lift ((-1 ** A.fromIntegral x) :+ A.constant 0) * arr!ix)
 
 -- | Apply the centring transform to a matrix
 --
@@ -46,7 +46,7 @@ centre2D :: (Elt e, IsFloating e)
 centre2D arr
   = A.generate (shape arr)
                (\ix -> let Z :. y :. x = unlift ix      :: Z :. Exp Int :. Exp Int
-                       in  lift (-1 ** A.fromIntegral (y + x), A.constant 0) * arr!ix)
+                       in  lift ((-1 ** A.fromIntegral (y + x)) :+ A.constant 0) * arr!ix)
 
 -- | Apply the centring transform to a 3D array
 --
@@ -56,7 +56,7 @@ centre3D :: (Elt e, IsFloating e)
 centre3D arr
   = A.generate (shape arr)
                (\ix -> let Z :. z :. y :. x = unlift ix :: Z :. Exp Int :. Exp Int :. Exp Int
-                       in  lift (-1 ** A.fromIntegral (z + y + x), A.constant 0) * arr!ix)
+                       in  lift ((-1 ** A.fromIntegral (z + y + x)) :+ A.constant 0) * arr!ix)
 
 
 -- | Apply the shifting transform to a vector

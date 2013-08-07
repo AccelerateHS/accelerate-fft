@@ -31,7 +31,7 @@ rootsOfUnity sh =
   A.generate sh (\ix -> let i = A.fromIntegral (A.indexHead ix)
                             k = 2 * pi * i / n
                         in
-                        A.lift ( cos k, -sin k ))
+                        A.lift ( cos k :+ (-sin k) ))
 
 
 -- | Calculate the roots of unity for an inverse transform
@@ -46,5 +46,5 @@ inverseRootsOfUnity sh =
   A.generate sh (\ix -> let i = A.fromIntegral (A.indexHead ix)
                             k = 2 * pi * i / n
                         in
-                        A.lift ( cos k, sin k ))
+                        A.lift ( cos k :+ sin k ))
 

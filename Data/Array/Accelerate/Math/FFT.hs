@@ -250,7 +250,7 @@ fft sign sh sz arr = go sz 0 1
               i = A.fromIntegral i'
               k = 2*pi*i/n
           in
-          lift ( cos k, A.constant sign * sin k )
+          lift ( cos k :+ A.constant sign * sin k )
 
 #ifdef ACCELERATE_CUDA_BACKEND
 -- FFT using the CUFFT library to enable high performance for the CUDA backend of
