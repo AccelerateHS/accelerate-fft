@@ -96,7 +96,7 @@ fft1D' mode len vec
     if P.not (isPow2 len)
        then error $ unlines
               [ "Data.Array.Accelerate.FFT: fft1D"
-              , "  Array dimensions must be powers of two, but are: " ++ showShape (Z:.len) ]
+              , "  Array dimensions must be powers of two, but are: " P.++ showShape (Z:.len) ]
 
        else case mode of
                  Inverse -> A.map (/scale) vec'
@@ -141,7 +141,7 @@ fft2D' mode width height arr
     if P.not (isPow2 width && isPow2 height)
        then error $ unlines
               [ "Data.Array.Accelerate.FFT: fft2D"
-              , "  Array dimensions must be powers of two, but are: " ++ showShape (Z:.height:.width) ]
+              , "  Array dimensions must be powers of two, but are: " P.++ showShape (Z:.height:.width) ]
 
        else case mode of
                  Inverse -> A.map (/scale) arr'
@@ -188,7 +188,7 @@ fft3D' mode width height depth arr
     if P.not (isPow2 width && isPow2 height && isPow2 depth)
        then error $ unlines
               [ "Data.Array.Accelerate.FFT: fft3D"
-              , "  Array dimensions must be powers of two, but are: " ++ showShape (Z:.depth:.height:.width) ]
+              , "  Array dimensions must be powers of two, but are: " P.++ showShape (Z:.depth:.height:.width) ]
 
        else case mode of
                  Inverse -> A.map (/scale) arr'
