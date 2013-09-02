@@ -42,6 +42,7 @@ import Data.Array.Accelerate.Array.Sugar        as S ( shapeToList, shape, EltRe
 import Data.Array.Accelerate.Type
 
 import Data.Functor
+import System.IO.Unsafe
 import Foreign.CUDA.FFT
 import qualified Foreign.CUDA.Driver            as CUDA hiding (free)
 #endif
@@ -263,69 +264,70 @@ cudaFFT :: forall e sh. (Shape sh, Elt e, IsFloating e)
         -> (Acc (Array sh (Complex e)) -> Acc (Array sh (Complex e)))
         -> Acc (Array sh (Complex e))
         -> Acc (Array sh (Complex e))
-cudaFFT mode sh p arr = deinterleave sh (foreignAcc ff pure (interleave arr))
+cudaFFT mode sh = cudaFFT'
   where
-    ff          = cudaAcc foreignFFT
-    -- Unfortunately the pure version of the function needs to be wrapped in
-    -- interleave and deinterleave to match how the foreign version works.
+    -- Plan the FFT.
+    -- Doing this in unsafePerformIO so it is not reperformed every time the
+    -- AST is evaluated.
     --
-    -- RCE: Do the interleaving and deinterleaving in foreignFFT
-    --
-    -- TLM: The interleaving might get fused into other parts of the
-    --      computation and thus be okay. We should really support multi types
-    --      such as float2 instead.
-    --
-    pure        = interleave . p . deinterleave sh
-    sign        = signOfMode mode :: Int
+    -- RCE: This is currently not destroyed properly. Need to attach a finaliser.
+    hndl = unsafePerformIO $ do
+            case shapeToList sh of
+              [width]                -> plan1D              width types 1
+              [height, width]        -> plan2D       height width types
+              [depth, height, width] -> plan3D depth height width types
+              _                      -> error "Accelerate-fft cannot use CUFFT for arrays of dimensions higher than 3"
 
-    foreignFFT :: Array DIM1 e -> CIO (Array DIM1 e)
-    foreignFFT arr' = do
-      -- Create the plan
-      -- TODO: Cache this.
-      --
-      hndl <- liftIO $
-        case shapeToList sh of
-          [width]                -> plan1D              width types 1
-          [height, width]        -> plan2D       height width types
-          [depth, height, width] -> plan3D depth height width types
-          _                      -> error "Accelerate-fft cannot use CUFFT for arrays of dimensions higher than 3"
+    types = case (floatingType :: FloatingType e) of
+              TypeFloat{}   -> C2C
+              TypeDouble{}  -> Z2Z
+              TypeCFloat{}  -> C2C
+              TypeCDouble{} -> Z2Z
 
-      output <- allocateArray (S.shape arr')
-      iptr   <- floatingDevicePtr arr'
-      optr   <- floatingDevicePtr output
+    cudaFFT' p arr = deinterleave sh (foreignAcc ff pure (interleave arr))
+      where
+        ff          = cudaAcc foreignFFT
+        -- Unfortunately the pure version of the function needs to be wrapped in
+        -- interleave and deinterleave to match how the foreign version works.
+        --
+        -- RCE: Do the interleaving and deinterleaving in foreignFFT
+        --
+        -- TLM: The interleaving might get fused into other parts of the
+        --      computation and thus be okay. We should really support multi types
+        --      such as float2 instead.
+        --
+        pure        = interleave . p . deinterleave sh
+        sign        = signOfMode mode :: Int
 
-      --Execute
-      liftIO $ execute hndl iptr optr
+        foreignFFT :: Array DIM1 e -> CIO (Array DIM1 e)
+        foreignFFT arr' = do
+          output <- allocateArray (S.shape arr')
+          iptr   <- floatingDevicePtr arr'
+          optr   <- floatingDevicePtr output
 
-      liftIO $ destroy hndl
+          --Execute
+          liftIO $ execute iptr optr
 
-      return output
+          return output
 
-    types
-      = case (floatingType :: FloatingType e) of
-          TypeFloat{}   -> C2C
-          TypeDouble{}  -> Z2Z
-          TypeCFloat{}  -> C2C
-          TypeCDouble{} -> Z2Z
+        execute :: CUDA.DevicePtr e -> CUDA.DevicePtr e -> IO ()
+        execute iptr optr
+          = case (floatingType :: FloatingType e) of
+              TypeFloat{}   -> execC2C hndl iptr optr sign
+              TypeDouble{}  -> execZ2Z hndl iptr optr sign
+              TypeCFloat{}  -> execC2C hndl (CUDA.castDevPtr iptr) (CUDA.castDevPtr optr) sign
+              TypeCDouble{} -> execZ2Z hndl (CUDA.castDevPtr iptr) (CUDA.castDevPtr optr) sign
 
-    execute :: Handle -> CUDA.DevicePtr e -> CUDA.DevicePtr e -> IO ()
-    execute hndl iptr optr
-      = case (floatingType :: FloatingType e) of
-          TypeFloat{}   -> execC2C hndl iptr optr sign
-          TypeDouble{}  -> execZ2Z hndl iptr optr sign
-          TypeCFloat{}  -> execC2C hndl (CUDA.castDevPtr iptr) (CUDA.castDevPtr optr) sign
-          TypeCDouble{} -> execZ2Z hndl (CUDA.castDevPtr iptr) (CUDA.castDevPtr optr) sign
+        floatingDevicePtr :: Vector e -> CIO (CUDA.DevicePtr e)
+        floatingDevicePtr v
+          = case (floatingType :: FloatingType e) of
+              TypeFloat{}   -> singleDevicePtr v
+              TypeDouble{}  -> singleDevicePtr v
+              TypeCFloat{}  -> CUDA.castDevPtr <$> singleDevicePtr v
+              TypeCDouble{} -> CUDA.castDevPtr <$> singleDevicePtr v
 
-    floatingDevicePtr :: Vector e -> CIO (CUDA.DevicePtr e)
-    floatingDevicePtr v
-      = case (floatingType :: FloatingType e) of
-          TypeFloat{}   -> singleDevicePtr v
-          TypeDouble{}  -> singleDevicePtr v
-          TypeCFloat{}  -> CUDA.castDevPtr <$> singleDevicePtr v
-          TypeCDouble{} -> CUDA.castDevPtr <$> singleDevicePtr v
-
-    singleDevicePtr :: DevicePtrs (EltRepr e) ~ ((),CUDA.DevicePtr b) => Vector e -> CIO (CUDA.DevicePtr b)
-    singleDevicePtr v = P.snd <$> devicePtrsOfArray v
+        singleDevicePtr :: DevicePtrs (EltRepr e) ~ ((),CUDA.DevicePtr b) => Vector e -> CIO (CUDA.DevicePtr b)
+        singleDevicePtr v = P.snd <$> devicePtrsOfArray v
 #endif
 
 -- Append two arrays. Doesn't do proper bounds checking or intersection...
