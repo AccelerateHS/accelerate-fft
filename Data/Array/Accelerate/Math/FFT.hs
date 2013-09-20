@@ -286,7 +286,7 @@ cudaFFT mode sh = cudaFFT'
 
     cudaFFT' p arr = deinterleave sh (foreignAcc ff pure (interleave arr))
       where
-        ff          = cudaAcc foreignFFT
+        ff          = CUDAForeignAcc foreignFFT
         -- Unfortunately the pure version of the function needs to be wrapped in
         -- interleave and deinterleave to match how the foreign version works.
         --
