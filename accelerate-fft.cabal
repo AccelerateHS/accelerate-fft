@@ -1,7 +1,7 @@
 Name:                   accelerate-fft
 Version:                0.14.0.0
 Cabal-version:          >= 1.6
-Tested-with:            GHC >= 7.4
+Tested-with:            GHC == 7.6.*
 Build-type:             Simple
 
 Synopsis:               FFT using the Accelerate library
@@ -32,7 +32,7 @@ Flag cuda
 
 Library
   Build-depends:        accelerate              == 0.14.*,
-                        base                    == 4.*
+                        base                    == 4.6.*
 
   Exposed-modules:      Data.Array.Accelerate.Math.Complex
                         Data.Array.Accelerate.Math.FFT
