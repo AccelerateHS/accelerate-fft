@@ -45,8 +45,8 @@ Library
   if flag(cuda)
     CPP-options:        -DACCELERATE_CUDA_BACKEND
     Build-depends:      accelerate-cuda         == 0.14.*,
-                        cuda                    >= 0.5,
-                        cufft                   >= 0.1
+                        cuda                    >= 0.5          && < 0.6,
+                        cufft                   >= 0.1          && < 0.2
 
   -- Don't add the extensions list here. Instead, place individual LANGUAGE
   -- pragmas in the files that require a specific extension. This means the
