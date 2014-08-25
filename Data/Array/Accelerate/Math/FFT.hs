@@ -130,7 +130,7 @@ fft2D' mode width height arr
   = let sign    = signOfMode mode :: e
         scale   = P.fromIntegral (width * height)
 #ifdef ACCELERATE_CUDA_BACKEND
-        sh      = (Z:.width:.height)
+        sh      = (Z:.height:.width)
         arr'    = cudaFFT mode sh fft' arr
 #else
         arr'    = fft' arr
@@ -176,7 +176,7 @@ fft3D' mode width height depth arr
   = let sign    = signOfMode mode :: e
         scale   = P.fromIntegral (width * height)
 #ifdef ACCELERATE_CUDA_BACKEND
-        sh      = (Z:.width:.height:.depth)
+        sh      = (Z:.depth:.height:.width)
         arr'    = cudaFFT mode sh fft' arr
 #else
         arr'    = fft' arr
