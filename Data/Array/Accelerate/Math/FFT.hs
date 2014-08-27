@@ -42,6 +42,7 @@ import Data.Array.Accelerate.Array.Sugar        as S ( shapeToList, shape, EltRe
 import Data.Array.Accelerate.Type
 
 import Data.Functor
+import System.Mem.Weak
 import System.IO.Unsafe
 import Foreign.CUDA.FFT
 import qualified Foreign.CUDA.Driver            as CUDA hiding (free)
@@ -270,13 +271,14 @@ cudaFFT mode sh = cudaFFT'
     -- Doing this in unsafePerformIO so it is not reperformed every time the
     -- AST is evaluated.
     --
-    -- RCE: This is currently not destroyed properly. Need to attach a finaliser.
     hndl = unsafePerformIO $ do
-            case shapeToList sh of
-              [width]                -> plan1D              width types 1
-              [height, width]        -> plan2D       height width types
-              [depth, height, width] -> plan3D depth height width types
-              _                      -> error "Accelerate-fft cannot use CUFFT for arrays of dimensions higher than 3"
+            plan <- case shapeToList sh of
+                     [width]                -> plan1D              width types 1
+                     [height, width]        -> plan2D       height width types
+                     [depth, height, width] -> plan3D depth height width types
+                     _                      -> error "Accelerate-fft cannot use CUFFT for arrays of dimensions higher than 3"
+            addFinalizer plan (destroy plan)
+            return plan
 
     types = case (floatingType :: FloatingType e) of
               TypeFloat{}   -> C2C
@@ -373,4 +375,3 @@ deinterleave (constant -> sh) arr =
   generate sh (\ix -> let i = toIndex sh ix * 2
                       in  lift (arr A.!! i :+ arr A.!! (i+1)))
 #endif
-
