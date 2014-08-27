@@ -274,8 +274,8 @@ cudaFFT mode sh = cudaFFT'
     hndl = unsafePerformIO $ do
             plan <- case shapeToList sh of
                      [width]                -> plan1D              width types 1
-                     [height, width]        -> plan2D       height width types
-                     [depth, height, width] -> plan3D depth height width types
+                     [width, height]        -> plan2D       height width types
+                     [width, height, depth] -> plan3D depth height width types
                      _                      -> error "Accelerate-fft cannot use CUFFT for arrays of dimensions higher than 3"
             addFinalizer plan (destroy plan)
             return plan
