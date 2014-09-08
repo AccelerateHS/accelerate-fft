@@ -34,8 +34,7 @@ Library
   Build-depends:        accelerate              == 0.15.*,
                         base                    >= 4.6 && < 4.8
 
-  Exposed-modules:      Data.Array.Accelerate.Math.Complex
-                        Data.Array.Accelerate.Math.FFT
+  Exposed-modules:      Data.Array.Accelerate.Math.FFT
                         Data.Array.Accelerate.Math.DFT
                         Data.Array.Accelerate.Math.DFT.Centre
                         Data.Array.Accelerate.Math.DFT.Roots

@@ -25,7 +25,7 @@ module Data.Array.Accelerate.Math.DFT.Centre (
 
 import Prelude                                  as P
 import Data.Array.Accelerate                    as A
-import Data.Array.Accelerate.Math.Complex
+import Data.Array.Accelerate.Data.Complex
 
 
 -- | Apply the centring transform to a vector

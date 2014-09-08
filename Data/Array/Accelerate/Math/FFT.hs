@@ -34,7 +34,7 @@ module Data.Array.Accelerate.Math.FFT (
 import Prelude                                  as P
 import Data.Array.Accelerate                    as A
 import Data.Array.Accelerate.Array.Sugar        ( showShape )
-import Data.Array.Accelerate.Math.Complex
+import Data.Array.Accelerate.Data.Complex
 
 #ifdef ACCELERATE_CUDA_BACKEND
 import Data.Array.Accelerate.CUDA.Foreign

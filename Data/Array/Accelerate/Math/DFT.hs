@@ -32,7 +32,7 @@ module Data.Array.Accelerate.Math.DFT (
 import Prelude                                  as P hiding ((!!))
 import Data.Array.Accelerate                    as A
 import Data.Array.Accelerate.Math.DFT.Roots
-import Data.Array.Accelerate.Math.Complex
+import Data.Array.Accelerate.Data.Complex
 
 
 -- | Compute the DFT along the low order dimension of an array

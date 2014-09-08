@@ -16,7 +16,7 @@ module Data.Array.Accelerate.Math.DFT.Roots (
 
 import Prelude                                  as P
 import Data.Array.Accelerate                    as A
-import Data.Array.Accelerate.Math.Complex
+import Data.Array.Accelerate.Data.Complex
 
 
 -- | Calculate the roots of unity for the forward transform
