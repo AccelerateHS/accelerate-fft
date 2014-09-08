@@ -358,6 +358,7 @@ append xs ys
 -- flattened vector. This allows us to mimic the float2 structure used by CUFFT
 -- to store complex numbers.
 --
+{-# NOINLINE interleave #-}
 interleave :: (Shape sh, Elt e) => Acc (Array sh (Complex e)) -> Acc (Vector e)
 interleave arr = generate sh swizzle
   where
@@ -370,6 +371,7 @@ interleave arr = generate sh swizzle
 
 -- Deinterleave a vector into a complex array. Assumes the array is even in length.
 --
+{-# NOINLINE deinterleave #-}
 deinterleave :: (Shape sh, Elt e) => sh -> Acc (Vector e) -> Acc (Array sh (Complex e))
 deinterleave (constant -> sh) arr =
   generate sh (\ix -> let i = toIndex sh ix * 2
