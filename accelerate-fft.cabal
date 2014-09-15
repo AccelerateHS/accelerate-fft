@@ -53,7 +53,9 @@ Library
   --
   -- Extensions:
 
-Source-repository head
-  Type:                 git
-  Location:             git://github.com/AccelerateHS/accelerate-fft.git
+Source-repository this
+  type:                 git
+  location:             git://github.com/AccelerateHS/accelerate-fft.git
+  branch:               release/0.15
+  tag:                  0.15.0.0
 
