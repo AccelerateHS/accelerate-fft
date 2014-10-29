@@ -1,5 +1,5 @@
 Name:                   accelerate-fft
-Version:                1.0.0.0
+Version:                2.0.0.0
 Cabal-version:          >= 1.6
 Tested-with:            GHC >= 7.6
 Build-type:             Simple
@@ -31,7 +31,7 @@ Flag cuda
   Default:              True
 
 Library
-  Build-depends:        accelerate              == 1.0.*,
+  Build-depends:        accelerate              == 2.0.*,
                         base                    >= 4.6 && < 4.8
 
   Exposed-modules:      Data.Array.Accelerate.Math.FFT
@@ -43,7 +43,7 @@ Library
 
   if flag(cuda)
     CPP-options:        -DACCELERATE_CUDA_BACKEND
-    Build-depends:      accelerate-cuda         == 1.0.*,
+    Build-depends:      accelerate-cuda         == 2.0.*,
                         cuda                    >= 0.5,
                         cufft                   >= 0.1
 
