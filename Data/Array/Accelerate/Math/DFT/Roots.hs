@@ -1,7 +1,8 @@
 {-# LANGUAGE TypeOperators #-}
 -- |
 -- Module      : Data.Array.Accelerate.Math.DFT.Roots
--- Copyright   : [2012] Manuel M T Chakravarty, Gabriele Keller, Trevor L. McDonell
+-- Copyright   : [2012..2014] Manuel M T Chakravarty, Gabriele Keller, Trevor L. McDonell
+--               [2013..2014] Robert Clifton-Everest
 -- License     : BSD3
 --
 -- Maintainer  : Manuel M T Chakravarty <chak@cse.unsw.edu.au>
