@@ -46,7 +46,8 @@ import Data.Functor
 import System.Mem.Weak
 import System.IO.Unsafe
 import Foreign.CUDA.FFT
-import qualified Foreign.CUDA.Driver            as CUDA hiding (free)
+import qualified Foreign.CUDA.Types             as CUDA
+import qualified Foreign.CUDA.Driver            as CUDA
 #endif
 
 import Data.Bits
@@ -302,14 +303,16 @@ cudaFFT mode sh = cudaFFT'
         pure        = interleave . p . deinterleave sh
         sign        = signOfMode mode :: Int
 
-        foreignFFT :: Array DIM1 e -> CIO (Array DIM1 e)
-        foreignFFT arr' = do
+        foreignFFT :: CUDA.Stream -> Array DIM1 e -> CIO (Array DIM1 e)
+        foreignFFT stream arr' = do
           output <- allocateArray (S.shape arr')
           iptr   <- floatingDevicePtr arr'
           optr   <- floatingDevicePtr output
 
           --Execute
-          liftIO $ execute iptr optr
+          liftIO $ do
+            setStream hndl stream
+            execute iptr optr
 
           return output
 
