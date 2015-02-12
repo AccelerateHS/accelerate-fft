@@ -332,8 +332,8 @@ cudaFFT mode sh = cudaFFT'
               TypeCFloat{}  -> CUDA.castDevPtr <$> singleDevicePtr v
               TypeCDouble{} -> CUDA.castDevPtr <$> singleDevicePtr v
 
-        singleDevicePtr :: DevicePtrs (EltRepr e) ~ ((),CUDA.DevicePtr b) => Vector e -> CIO (CUDA.DevicePtr b)
-        singleDevicePtr v = P.snd <$> devicePtrsOfArray v
+        singleDevicePtr :: DevicePtrs (EltRepr e) ~ CUDA.DevicePtr b => Vector e -> CIO (CUDA.DevicePtr b)
+        singleDevicePtr v = devicePtrsOfArray v
 #endif
 
 -- Append two arrays. Doesn't do proper bounds checking or intersection...
