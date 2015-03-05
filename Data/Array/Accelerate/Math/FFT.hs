@@ -42,7 +42,6 @@ import Data.Array.Accelerate.CUDA.Foreign
 import Data.Array.Accelerate.Array.Sugar        as S ( shapeToList, shape, EltRepr )
 import Data.Array.Accelerate.Type
 
-import Data.Functor
 import System.Mem.Weak
 import System.IO.Unsafe
 import Foreign.CUDA.FFT
@@ -306,15 +305,13 @@ cudaFFT mode sh = cudaFFT'
         foreignFFT :: CUDA.Stream -> Array DIM1 e -> CIO (Array DIM1 e)
         foreignFFT stream arr' = do
           output <- allocateArray (S.shape arr')
-          iptr   <- floatingDevicePtr arr'
-          optr   <- floatingDevicePtr output
-
-          --Execute
-          liftIO $ do
-            setStream hndl stream
-            execute iptr optr
-
-          return output
+          withFloatingDevicePtr arr'   stream $ \iptr -> do
+          withFloatingDevicePtr output stream $ \optr -> do
+            -- Execute the foreign function
+            liftIO $ do
+              setStream hndl stream
+              execute iptr optr
+              return output
 
         execute :: CUDA.DevicePtr e -> CUDA.DevicePtr e -> IO ()
         execute iptr optr
@@ -324,16 +321,21 @@ cudaFFT mode sh = cudaFFT'
               TypeCFloat{}  -> execC2C hndl (CUDA.castDevPtr iptr) (CUDA.castDevPtr optr) sign
               TypeCDouble{} -> execZ2Z hndl (CUDA.castDevPtr iptr) (CUDA.castDevPtr optr) sign
 
-        floatingDevicePtr :: Vector e -> CIO (CUDA.DevicePtr e)
-        floatingDevicePtr v
+        withFloatingDevicePtr :: Vector e -> CUDA.Stream -> (CUDA.DevicePtr e -> CIO a) -> CIO a
+        withFloatingDevicePtr v s k
           = case (floatingType :: FloatingType e) of
-              TypeFloat{}   -> singleDevicePtr v
-              TypeDouble{}  -> singleDevicePtr v
-              TypeCFloat{}  -> CUDA.castDevPtr <$> singleDevicePtr v
-              TypeCDouble{} -> CUDA.castDevPtr <$> singleDevicePtr v
+              TypeFloat{}   -> withSingleDevicePtr v s k
+              TypeDouble{}  -> withSingleDevicePtr v s k
+              TypeCFloat{}  -> withSingleDevicePtr v s (k . CUDA.castDevPtr)
+              TypeCDouble{} -> withSingleDevicePtr v s (k . CUDA.castDevPtr)
 
-        singleDevicePtr :: DevicePtrs (EltRepr e) ~ CUDA.DevicePtr b => Vector e -> CIO (CUDA.DevicePtr b)
-        singleDevicePtr v = devicePtrsOfArray v
+        withSingleDevicePtr
+            :: DevicePtrs (EltRepr e) ~ CUDA.DevicePtr b
+            => Vector e
+            -> CUDA.Stream
+            -> (CUDA.DevicePtr b -> CIO a)
+            -> CIO a
+        withSingleDevicePtr v s = withDevicePtrs v (Just s)
 #endif
 
 -- Append two arrays. Doesn't do proper bounds checking or intersection...
