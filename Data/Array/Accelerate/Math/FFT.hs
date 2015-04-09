@@ -351,7 +351,7 @@ append xs ys
     in
     generate (lift (sh :. n+m))
              (\ix -> let sz :. i = unlift ix :: Exp sh :. Exp Int
-                     in  i <* n ? (xs ! lift (sz:.i), ys ! lift (sz:.i-n) ))
+                     in  i A.<* n ? (xs ! lift (sz:.i), ys ! lift (sz:.i-n) ))
 
 
 #ifdef ACCELERATE_CUDA_BACKEND
