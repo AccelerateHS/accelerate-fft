@@ -1,4 +1,5 @@
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeOperators    #-}
 -- |
 -- Module      : Data.Array.Accelerate.Math.DFT.Centre
 -- Copyright   : [2012..2014] Manuel M T Chakravarty, Gabriele Keller, Trevor L. McDonell
@@ -68,7 +69,7 @@ shift1D arr
   where
     p ix
       = let Z:.x = unlift ix :: Z :. Exp Int
-        in index1 (x <* mw ? (x + mw, x - mw))
+        in index1 (x A.<* mw ? (x + mw, x - mw))
     Z:.w    = unlift (A.shape arr)
     mw      = w `div` 2
 
@@ -81,8 +82,8 @@ shift2D arr
   where
     p ix
       = let Z:.y:.x = unlift ix :: Z :. Exp Int :. Exp Int
-        in index2 (y <* mh ? (y + mh, y - mh))
-                  (x <* mw ? (x + mw, x - mw))
+        in index2 (y A.<* mh ? (y + mh, y - mh))
+                  (x A.<* mw ? (x + mw, x - mw))
     Z:.h:.w = unlift (A.shape arr)
     (mh,mw) = (h `div` 2, w `div` 2)
 
@@ -95,10 +96,10 @@ shift3D arr
   where
     p ix
       = let Z:.z:.y:.x = unlift ix :: Z :. Exp Int :. Exp Int :. Exp Int
-        in index3 (z <* md ? (z + md, z - md))
-                  (y <* mh ? (y + mh, y - mh))
-                  (x <* mw ? (x + mw, x - mw))
-    Z:.h:.w:.d = unlift (A.shape arr)
-    (mh,mw,md) = (h `div` 2, w `div` 2, d `div` 2)
+        in index3 (z A.<* md ? (z + md, z - md))
+                  (y A.<* mh ? (y + mh, y - mh))
+                  (x A.<* mw ? (x + mw, x - mw))
+    Z:.h:.w:.d   = unlift (A.shape arr)
+    (mh,mw,md)   = (h `div` 2, w `div` 2, d `div` 2)
     index3 i j k = lift (Z:.i:.j:.k)
 
