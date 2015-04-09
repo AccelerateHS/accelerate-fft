@@ -1,14 +1,16 @@
 language: haskell
 env:
-    - GHC=7.8.4 MODE=-f-cuda
-    - GHC=7.10.1 CABAL=1.22 MODE=-f-cuda
-    - CUDA=7.0-28 GHC=7.8.4
-    - CUDA=7.0-28 GHC=7.10.1 CABAL=1.22
-    - CUDA=7.0-28 GHC=head CABAL=head
+    - GHC=7.8.4
+    - GHC=7.8.4 CUDA=6.5-14
+    - GHC=7.8.4 CUDA=7.0-28
+    - GHC=7.10.1 CABAL=1.22
+    - GHC=7.10.1 CABAL=1.22 CUDA=6.5-14
+    - GHC=7.10.1 CABAL=1.22 CUDA=7.0-28
+    - GHC=head CABAL=head CUDA=7.0-28
 
 matrix:
     allow_failures:
-        - env: CUDA=7.0-28 GHC=head CABAL=head
+        - env: GHC=head CABAL=head CUDA=7.0-28
 
 before_install:
     # If travis doesn't have the version of GHC that we want, get it from hvr's PPA
@@ -48,6 +50,7 @@ before_install:
             export DEPS="deps/accelerate deps/accelerate-cuda"
         else
             export DEPS=deps/accelerate
+            export MODE=-f-cuda
         fi
 
 install:
