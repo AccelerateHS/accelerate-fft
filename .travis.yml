@@ -1,5 +1,16 @@
 language: haskell
 env:
+  global:
+    - HAPPY=1.19.5
+    - ALEX=3.1.4
+
+    - SHA_ACCELERATE=4d181866db677d0bb0fad0aa3224d8856c5a0911
+    - URL_ACCELERATE=https://github.com/AccelerateHS/accelerate.git
+
+    - SHA_ACCELERATE_CUDA=6b1f21878991d417b4ff165137e264628ea58bb9
+    - URL_ACCELERATE_CUDA=https://github.com/AccelerateHS/accelerate-cuda.git
+
+  matrix:
     - GHC=7.8.4
     - GHC=7.8.4 CUDA=6.5-14
     - GHC=7.8.4 CUDA=7.0-28
@@ -13,14 +24,26 @@ matrix:
         - env: GHC=head CABAL=head CUDA=7.0-28
 
 before_install:
+    # Fetch accelerate dependencies
+    - echo "Checking out dependencies"
+    - travis_retry git clone ${URL_ACCELERATE} deps/accelerate
+    - pushd deps/accelerate
+    - git reset --hard ${SHA_ACCELERATE}
+    - popd
+
+    - travis_retry git clone ${URL_ACCELERATE_CUDA} deps/accelerate-cuda
+    - pushd deps/accelerate-cuda
+    - git reset --hard ${SHA_ACCELERATE_CUDA}
+    - popd
+
     # If travis doesn't have the version of GHC that we want, get it from hvr's PPA
     - echo "Setting up GHC"
     - travis_retry sudo add-apt-repository -y ppa:hvr/ghc
     - travis_retry sudo apt-get update -qq
     - travis_retry sudo apt-get autoremove
     - travis_retry sudo apt-get install -y c2hs
-    - travis_retry sudo apt-get install happy-1.19.5 alex-3.1.4
-    - export PATH=/opt/alex/3.1.4/bin:/opt/happy/1.19.5/bin:${PATH}
+    - travis_retry sudo apt-get install happy-${HAPPY} alex-${ALEX}
+    - export PATH=/opt/alex/${ALEX}/bin:/opt/happy/${HAPPY}/bin:${PATH}
     - export PATH=/usr/local/ghc/${GHC}/bin:${PATH}
     - |
         if [ $(ghc --numeric-version) != ${GHC} ]; then

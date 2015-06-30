@@ -1,6 +1,0 @@
-[submodule "deps/accelerate"]
-	path = deps/accelerate
-	url = https://github.com/AccelerateHS/accelerate.git
-[submodule "deps/accelerate-cuda"]
-	path = deps/accelerate-cuda
-	url = https://github.com/AccelerateHS/accelerate-cuda.git
