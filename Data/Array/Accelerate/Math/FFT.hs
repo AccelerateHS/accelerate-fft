@@ -32,7 +32,6 @@ module Data.Array.Accelerate.Math.FFT (
 
 ) where
 
-import Prelude                                  as P
 import Data.Array.Accelerate                    as A
 import Data.Array.Accelerate.Array.Sugar        ( showShape )
 import Data.Array.Accelerate.Data.Complex
@@ -51,6 +50,7 @@ import qualified Foreign.CUDA.Driver            as CUDA
 #endif
 
 import Data.Bits
+import Prelude                                  as P
 
 data Mode = Forward | Reverse | Inverse
   deriving (Eq, Show)
