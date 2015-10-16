@@ -7,7 +7,7 @@ env:
     - SHA_ACCELERATE=11bde8004579b047c5dee97efec61fd05d0b79a1
     - URL_ACCELERATE=https://github.com/AccelerateHS/accelerate.git
 
-    - SHA_ACCELERATE_CUDA=8966e39e9419e521e16a2df02f02d818be5f88cd
+    - SHA_ACCELERATE_CUDA=a684b15bf8bc297938686bbcc369c44c0b4bd2e7
     - URL_ACCELERATE_CUDA=https://github.com/AccelerateHS/accelerate-cuda.git
 
   matrix:
@@ -59,6 +59,10 @@ before_install:
     # Maybe install the CUDA library
     - |
         if [ ${CUDA} ]; then
+            # Need to install a newer version of the Cabal library in order to run the
+            # Setup.hs script
+            cabal install Cabal --constraint="Cabal >= 1.22"
+
             echo "Installing CUDA library"
             travis_retry wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1204/x86_64/cuda-repo-ubuntu1204_${CUDA}_amd64.deb
             travis_retry sudo dpkg -i cuda-repo-ubuntu1204_${CUDA}_amd64.deb
