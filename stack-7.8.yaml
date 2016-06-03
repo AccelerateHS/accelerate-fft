@@ -21,6 +21,7 @@ extra-deps:
 - 'base-orphans-0.4.4'
 - 'cuda-0.7.0.0'
 - 'cufft-0.1.2.2'
+- 'SafeSemaphore-0.10.1'
 - 'unique-0'
 
 # Override default flag values for local packages and extra-deps
