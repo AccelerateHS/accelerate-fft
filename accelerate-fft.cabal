@@ -56,3 +56,5 @@ Source-repository head
   Type:                 git
   Location:             git://github.com/AccelerateHS/accelerate-fft.git
 
+-- vim: nospell
+
