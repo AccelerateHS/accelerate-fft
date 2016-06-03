@@ -1,5 +1,5 @@
 # vim: nospell
-language: minimal
+language: generic
 dist: trusty
 sudo: required
 
@@ -45,11 +45,11 @@ before_install:
   - travis_retry curl -L "https://www.stackage.org/stack/linux-x86_64" | gunzip | tar -x
   - mv stack-*/stack $HOME/bin
   - ln -s stack-${GHC%.*}.yaml stack.yaml
-  - travis_retry stack setup
+  - travis_retry stack setup --no-terminal
   - |
       if [ ${GHC%.*} == 7.8 ]; then
         # required to install the 'cuda' package
-        travis_retry stack setup --upgrade-cabal || exit 1
+        travis_retry stack setup --upgrade-cabal --no-terminal || exit 1
       fi
 
   # Fetch CUDA
@@ -59,7 +59,7 @@ before_install:
   - travis_retry sudo apt-get update -qq
   - export CUDA_APT=${CUDA%-*}
   - export CUDA_APT=${CUDA_APT/./-}
-  - travis_retry sudo apt-get install -y cuda-drivers cuda-core-${CUDA_APT} cuda-cudart-dev-${CUDA_APT} cuda-cudafft-dev-${CUDA_APT}
+  - travis_retry sudo apt-get install -y cuda-drivers cuda-core-${CUDA_APT} cuda-cudart-dev-${CUDA_APT} cuda-cufft-dev-${CUDA_APT}
   - travis_retry sudo apt-get clean
   - export CUDA_HOME=/usr/local/cuda-${CUDA%%-*}
   - export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
