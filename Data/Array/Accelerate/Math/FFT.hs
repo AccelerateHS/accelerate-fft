@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP                      #-}
+{-# LANGUAGE ConstraintKinds          #-}
 {-# LANGUAGE EmptyDataDecls           #-}
 {-# LANGUAGE FlexibleContexts         #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
