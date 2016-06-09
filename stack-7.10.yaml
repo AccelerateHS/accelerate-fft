@@ -19,7 +19,7 @@ packages:
 
 - location:
     git:    https://github.com/tmcdonell/cufft.git
-    commit: f27b88b11e99fe0ace5cc864d038006bfeb85722
+    commit: 370e9945cbc1e5f6c113c849f6b16ae04475110d
   extra-dep: true
 
 extra-deps:
