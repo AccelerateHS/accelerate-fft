@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators       #-}
 -- |
@@ -38,7 +39,7 @@ import Data.Array.Accelerate.Data.Complex
 
 -- | Compute the DFT along the low order dimension of an array
 --
-dft :: (Shape sh, Slice sh, Elt e, IsFloating e)
+dft :: (Shape sh, Slice sh, A.RealFloat e, A.FromIntegral Int e)
     => Acc (Array (sh:.Int) (Complex e))
     -> Acc (Array (sh:.Int) (Complex e))
 dft v = dftG (rootsOfUnity (shape v)) v
@@ -46,14 +47,14 @@ dft v = dftG (rootsOfUnity (shape v)) v
 
 -- | Compute the inverse DFT along the low order dimension of an array
 --
-idft :: (Shape sh, Slice sh, Elt e, IsFloating e)
+idft :: (Shape sh, Slice sh, A.RealFloat e, A.FromIntegral Int e)
      => Acc (Array (sh:.Int) (Complex e))
      -> Acc (Array (sh:.Int) (Complex e))
 idft v
   = let sh      = shape v
         n       = indexHead sh
         roots   = inverseRootsOfUnity sh
-        scale   = lift (A.fromIntegral n :+ constant 0)
+        scale   = lift (A.fromIntegral n :+ 0)
     in
     A.map (/scale) $ dftG roots v
 
@@ -64,12 +65,12 @@ idft v
 --
 --   The extent of the input and roots must match.
 --
-dftG :: forall sh e. (Shape sh, Slice sh, Elt e, IsFloating e)
+dftG :: forall sh e. (Shape sh, Slice sh, A.RealFloat e)
      => Acc (Array (sh:.Int) (Complex e))       -- ^ roots of unity
      -> Acc (Array (sh:.Int) (Complex e))       -- ^ input array
      -> Acc (Array (sh:.Int) (Complex e))
 dftG roots arr
-  = A.fold (+) (constant (0 :+ 0))
+  = A.fold (+) 0
   $ A.zipWith (*) arr' roots'
   where
     base        = shape arr
@@ -93,7 +94,7 @@ dftG roots arr
 
 -- | Compute a single value of the DFT.
 --
-dftGS :: forall sh e. (Shape sh, Slice sh, Elt e, IsFloating e)
+dftGS :: forall sh e. (Shape sh, Slice sh, A.RealFloat e)
       => Exp (sh :. Int)                        -- ^ index of the value we want
       -> Acc (Array (sh:.Int) (Complex e))      -- ^ roots of unity
       -> Acc (Array (sh:.Int) (Complex e))      -- ^ input array
@@ -107,5 +108,5 @@ dftGS ix roots arr
                              (\ix' -> let sh :. n = unlift ix'  :: Exp sh :. Exp Int
                                       in  roots ! lift (sh :. (k*n) `mod` l))
     in
-    A.foldAll (+) (constant (0 :+ 0)) $ A.zipWith (*) arr roots'
+    A.foldAll (+) 0 $ A.zipWith (*) arr roots'
 

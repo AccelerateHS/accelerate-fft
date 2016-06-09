@@ -9,18 +9,22 @@ packages:
 # extra-deps:
 - location:
     git:    https://github.com/AccelerateHS/accelerate.git
-    commit: 01d1d2da0b5147041af61e95936262e6eff3f881
+    commit: aed12138a9788ff5d6289d214c84ff6108dc04bd
   extra-dep: true
 
 - location:
     git:    https://github.com/AccelerateHS/accelerate-cuda.git
-    commit: b33150316aa8b8dd611cfc59f08429bd64fdb747
+    commit: 05acd3adca9fd89a8ac19184afbed47d1b7d1505
+  extra-dep: true
+
+- location:
+    git:    https://github.com/tmcdonell/cufft.git
+    commit: f27b88b11e99fe0ace5cc864d038006bfeb85722
   extra-dep: true
 
 extra-deps:
 - 'base-orphans-0.4.4'
 - 'cuda-0.7.0.0'
-- 'cufft-0.1.2.2'
 - 'SafeSemaphore-0.10.1'
 - 'unique-0'
 

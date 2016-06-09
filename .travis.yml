@@ -3,10 +3,6 @@ language: generic
 dist: trusty
 sudo: required
 
-cache:
-  directories:
-    - $HOME/.stack
-
 matrix:
   include:
     - env: CUDA=6.5-14 GHC=7.8.4 CABAL=1.18
@@ -33,11 +29,27 @@ matrix:
       compiler: "GHC 7.10"
       addons: { apt: { sources: [ hvr-ghc ], packages: [ cabal-install-1.22, happy-1.19.5, alex-3.1.7 ] }}
 
+    - env: CUDA=6.5-14 GHC=8.0.1 CABAL=1.24
+      compiler: "GHC 8.0"
+      addons: { apt: { sources: [ hvr-ghc ], packages: [ cabal-install-1.24, happy-1.19.5, alex-3.1.7 ] }}
+
+    - env: CUDA=7.0-28 GHC=8.0.1 CABAL=1.24
+      compiler: "GHC 8.0"
+      addons: { apt: { sources: [ hvr-ghc ], packages: [ cabal-install-1.24, happy-1.19.5, alex-3.1.7 ] }}
+
+    - env: CUDA=7.5-18 GHC=8.0.1 CABAL=1.24
+      compiler: "GHC 8.0"
+      addons: { apt: { sources: [ hvr-ghc ], packages: [ cabal-install-1.24, happy-1.19.5, alex-3.1.7 ] }}
+
+    - env: CUDA=7.5-18 GHC=head CABAL=head
+      compiler: "GHC HEAD"
+      addons: { apt: { sources: [ hvr-ghc ], packages: [ ghc-head, cabal-install-head, happy-1.19.5, alex-3.1.7 ] }}
+
   allow_failures:
-    - env: CABAL=head GHC=head
+    - env: CUDA=7.5-18 GHC=head CABAL=head
 
 before_install:
-  - export PATH=/opt/ghc/$GHC/bin:/opt/cabal/$CABAL/bin:/opt/alex/3.1.7/bin:/opt/happy/1.19.5/bin:$HOME/.cabal/bin:$PATH
+  - export PATH=/opt/cabal/$CABAL/bin:/opt/alex/3.1.7/bin:/opt/happy/1.19.5/bin:$HOME/.cabal/bin:$PATH
 
   # Fetch stack
   - mkdir $HOME/bin
@@ -45,9 +57,13 @@ before_install:
   - travis_retry curl -L "https://www.stackage.org/stack/linux-x86_64" | gunzip | tar -x
   - mv stack-*/stack $HOME/bin
   - ln -s stack-${GHC%.*}.yaml stack.yaml
-  - travis_retry stack setup --no-terminal
   - |
-      if [ ${GHC%.*} == 7.8 ]; then
+      if [ ${GHC} != head ]; then
+        ln -s stack-${GHC%.*}.yaml stack.yaml
+        travis_retry stack setup --no-terminal
+      fi
+  - |
+      if [ ${GHC%.*} == 7.8 -o ${GHC%.*} == 7.10 ]; then
         # required to install the 'cuda' package
         travis_retry stack setup --upgrade-cabal --no-terminal || exit 1
       fi
@@ -68,9 +84,19 @@ before_install:
 install:
   - echo "$(stack exec ghc -- --version) [$(stack exec ghc -- --print-project-git-commit-id 2> /dev/null || echo '?')]"
   - stack --version
-  - travis_retry stack build --only-dependencies --no-terminal --no-haddock-deps -j2
+  - |
+      if [ ${GHC} == head ]; then
+        travis_retry cabal install --only-dependencies --allow-newer
+      else
+        travis_retry stack build --only-dependencies --no-terminal --no-haddock-deps
+      fi
 
 script:
-  - stack build --no-terminal --haddock --no-haddock-deps
-  - stack build --no-terminal --flag accelerate-fft:-cuda
+  - |
+      if [ ${GHC} == head ]; then
+        cabal install --allow-newer
+      else
+        stack build --no-terminal --haddock --no-haddock-deps
+        stack build --no-terminal --flag accelerate-fft:-cuda
+      fi
 

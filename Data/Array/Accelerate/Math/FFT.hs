@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP                      #-}
 {-# LANGUAGE EmptyDataDecls           #-}
+{-# LANGUAGE FlexibleContexts         #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE GADTs                    #-}
 {-# LANGUAGE ScopedTypeVariables      #-}
@@ -52,12 +53,12 @@ import qualified Foreign.CUDA.Driver            as CUDA
 import Data.Bits
 
 data Mode = Forward | Reverse | Inverse
-  deriving (Eq, Show)
+  deriving (P.Eq, Show)
 
 isPow2 :: Int -> Bool
 isPow2 x = x .&. (x-1) == 0
 
-signOfMode :: Num a => Mode -> a
+signOfMode :: P.Num a => Mode -> a
 signOfMode m
   = case m of
       Forward   -> -1
@@ -71,7 +72,7 @@ signOfMode m
 -- Discrete Fourier Transform of a vector. Array dimensions must be powers of
 -- two else error.
 --
-fft1D :: (Elt e, IsFloating e)
+fft1D :: (P.Num e, A.RealFloat e, A.FromIntegral Int e, A.IsFloating e)
       => Mode
       -> Vector (Complex e)
       -> Acc (Vector (Complex e))
@@ -80,7 +81,7 @@ fft1D mode vec
     in
     fft1D' mode len (use vec)
 
-fft1D' :: forall e. (Elt e, IsFloating e)
+fft1D' :: forall e. (P.Num e, A.RealFloat e, A.FromIntegral Int e, A.IsFloating e)
        => Mode
        -> Int
        -> Acc (Vector (Complex e))
@@ -112,7 +113,7 @@ fft1D' mode len vec
 -- Discrete Fourier Transform of a matrix. Array dimensions must be powers of
 -- two else error.
 --
-fft2D :: (Elt e, IsFloating e)
+fft2D :: (P.Num e, A.RealFloat e, A.FromIntegral Int e, A.IsFloating e)
       => Mode
       -> Array DIM2 (Complex e)
       -> Acc (Array DIM2 (Complex e))
@@ -122,7 +123,7 @@ fft2D mode arr
     fft2D' mode width height (use arr)
 
 
-fft2D' :: forall e. (Elt e, IsFloating e)
+fft2D' :: forall e. (P.Num e, A.RealFloat e, A.FromIntegral Int e, A.IsFloating e)
        => Mode
        -> Int   -- ^ width
        -> Int   -- ^ height
@@ -157,7 +158,7 @@ fft2D' mode width height arr
 -- Discrete Fourier Transform of a 3D array. Array dimensions must be power of
 -- two else error.
 --
-fft3D :: (Elt e, IsFloating e)
+fft3D :: (P.Num e, A.RealFloat e, A.FromIntegral Int e, A.IsFloating e)
       => Mode
       -> Array DIM3 (Complex e)
       -> Acc (Array DIM3 (Complex e))
@@ -167,7 +168,7 @@ fft3D mode arr
     fft3D' mode width height depth (use arr)
 
 
-fft3D' :: forall e. (Elt e, IsFloating e)
+fft3D' :: forall e. (P.Num e, A.RealFloat e, A.FromIntegral Int e, A.IsFloating e)
        => Mode
        -> Int   -- ^ width
        -> Int   -- ^ height
@@ -214,7 +215,7 @@ rotate3D arr
 -- We require the innermost dimension be passed as a Haskell value because we
 -- can't do divide-and-conquer recursion directly in the meta-language.
 --
-fft :: forall sh e. (Slice sh, Shape sh, IsFloating e, Elt e)
+fft :: forall sh e. (Slice sh, Shape sh, A.RealFloat e, A.FromIntegral Int e)
     => e
     -> sh
     -> Int
