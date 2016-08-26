@@ -9,22 +9,22 @@ packages:
 # extra-deps:
 - location:
     git:    https://github.com/AccelerateHS/accelerate.git
-    commit: aed12138a9788ff5d6289d214c84ff6108dc04bd
+    commit: 8466b2dfb1ef8a48e632c6cd621ce51d025cc023
   extra-dep: true
 
 - location:
     git:    https://github.com/AccelerateHS/accelerate-cuda.git
-    commit: 05acd3adca9fd89a8ac19184afbed47d1b7d1505
+    commit: 580facb934a507c1aa9bda46952761349564b18c
   extra-dep: true
 
 - location:
     git:    https://github.com/tmcdonell/cuda.git
-    commit: 28ee2bd8ef94eb0e6231373ee2b5e0c9187bf5c7
+    commit: 5866f6d85bd530cf419e0aeec3ff4c92a9e7c509
   extra-dep: true
 
 - location:
-    git:    https://github.com/tmcdonell/cufft.git
-    commit: 370e9945cbc1e5f6c113c849f6b16ae04475110d
+    git:    https://github.com/robeverest/cufft.git
+    commit: 3a793a1dfdc205867d38d90303356832a11c0718
   extra-dep: true
 
 extra-deps:
