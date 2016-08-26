@@ -40,6 +40,7 @@ import Data.Array.Accelerate.Array.Sugar        ( showShape )
 import Data.Array.Accelerate.Data.Complex
 
 #ifdef ACCELERATE_CUDA_BACKEND
+import Data.Array.Accelerate.Math.FFT.Twine
 import Data.Array.Accelerate.CUDA.Foreign
 import Data.Array.Accelerate.Array.Sugar        as S ( shapeToList, shape, EltRepr )
 import Data.Array.Accelerate.Type
@@ -289,7 +290,12 @@ cudaFFT mode sh = cudaFFT'
               TypeCFloat{}  -> C2C
               TypeCDouble{} -> Z2Z
 
-    cudaFFT' p arr = deinterleave sh (foreignAcc ff pure (interleave arr))
+    cudaFFT' p
+      = reshape (constant sh)
+      . deinterleave
+      . foreignAcc ff pure
+      . interleave
+      . flatten
       where
         ff          = CUDAForeignAcc "foreignFFT" foreignFFT
         -- Unfortunately the pure version of the function needs to be wrapped in
@@ -301,7 +307,7 @@ cudaFFT mode sh = cudaFFT'
         --      computation and thus be okay. We should really support multi types
         --      such as float2 instead.
         --
-        pure        = interleave . p . deinterleave sh
+        pure        = interleave . flatten . p . reshape (constant sh) . deinterleave
         sign        = signOfMode mode :: Int
 
         foreignFFT :: CUDA.Stream -> Array DIM1 e -> CIO (Array DIM1 e)
@@ -356,32 +362,3 @@ append xs ys
                      in  i A.<* n ? (xs ! lift (sz:.i), ys ! lift (sz:.i-n) ))
 
 
-#ifdef ACCELERATE_CUDA_BACKEND
-{-# RULES
-  "interleave/deinterleave" forall sh x. deinterleave sh (interleave x) = x;
-  "deinterleave/interleave" forall sh x. interleave (deinterleave sh x) = x
- #-}
-
--- Interleave the real and imaginary components in a complex array and produce a
--- flattened vector. This allows us to mimic the float2 structure used by CUFFT
--- to store complex numbers.
---
-{-# NOINLINE interleave #-}
-interleave :: (Shape sh, Elt e) => Acc (Array sh (Complex e)) -> Acc (Vector e)
-interleave arr = generate sh swizzle
-  where
-    sh          = index1 (2 * A.size arr)
-    swizzle ix  =
-      let i = indexHead ix
-          v = arr A.!! (i `div` 2)
-      in
-      i `mod` 2 ==* 0 ? (real v, imag v)
-
--- Deinterleave a vector into a complex array. Assumes the array is even in length.
---
-{-# NOINLINE deinterleave #-}
-deinterleave :: (Shape sh, Elt e) => sh -> Acc (Vector e) -> Acc (Array sh (Complex e))
-deinterleave (constant -> sh) arr =
-  generate sh (\ix -> let i = toIndex sh ix * 2
-                      in  lift (arr A.!! i :+ arr A.!! (i+1)))
-#endif

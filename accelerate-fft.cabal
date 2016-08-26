@@ -30,21 +30,27 @@ Flag cuda
   Default:              True
 
 Library
-  Build-depends:        accelerate              == 2.0.*,
-                        base                    >= 4.7
+  build-depends:
+        base                    >= 4.7
+      , accelerate              == 2.0.*
 
-  Exposed-modules:      Data.Array.Accelerate.Math.FFT
-                        Data.Array.Accelerate.Math.DFT
-                        Data.Array.Accelerate.Math.DFT.Centre
-                        Data.Array.Accelerate.Math.DFT.Roots
+  exposed-modules:
+      Data.Array.Accelerate.Math.FFT
+      Data.Array.Accelerate.Math.DFT
+      Data.Array.Accelerate.Math.DFT.Centre
+      Data.Array.Accelerate.Math.DFT.Roots
+
+  other-modules:
+      Data.Array.Accelerate.Math.FFT.Twine
 
   ghc-options:          -O2 -Wall -funbox-strict-fields
 
   if flag(cuda)
-    CPP-options:        -DACCELERATE_CUDA_BACKEND
-    Build-depends:      accelerate-cuda         == 2.0.*,
-                        cuda                    >= 0.5,
-                        cufft                   >= 0.1.2
+    cpp-options:        -DACCELERATE_CUDA_BACKEND
+    build-depends:
+        accelerate-cuda         == 2.0.*
+      , cuda                    >= 0.5
+      , cufft                   >= 0.1.2
 
   -- Don't add the extensions list here. Instead, place individual LANGUAGE
   -- pragmas in the files that require a specific extension. This means the
