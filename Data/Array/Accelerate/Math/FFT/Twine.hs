@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
 -- |
 -- Module      : Data.Array.Accelerate.Math.FFT.Twine
 -- Copyright   : [2016] Manuel M T Chakravarty, Gabriele Keller, Trevor L. McDonell
@@ -15,6 +16,9 @@ module Data.Array.Accelerate.Math.FFT.Twine
 
 import Data.Array.Accelerate                                      as A
 import Data.Array.Accelerate.Data.Complex
+
+import Data.FileEmbed
+import Data.ByteString                                            ( ByteString )
 
 
 -- Interleave the real and imaginary components in a complex array and produce a
@@ -56,4 +60,22 @@ deinterleave arr = generate sh swizzle
   "interleave/deinterleave" forall x. deinterleave (interleave x) = x;
   "deinterleave/interleave" forall x. interleave (deinterleave x) = x
  #-}
+
+
+-- Embedded PTX code for interleave and deinterleave for 32- and 64-bit floating
+-- point numbers respectively. These can be loaded and executed by the CUDA
+-- driver at runtime as required.
+--
+-- The PTX code was compiled for SM-2.0 and 64-bit address space (the default
+-- settings of nvcc-7.5), but the code is simple enough that the CUDA device
+-- driver should be able to compile it for the actual target architecture
+-- without issue. This has been confirmed with respect to SM, but I don't have
+-- a 32-bit machine available to test that aspect with.
+--
+
+ptx_twine_f32 :: ByteString
+ptx_twine_f32 = $(embedFile "cubits/twine_f32.ptx")
+
+ptx_twine_f64 :: ByteString
+ptx_twine_f64 = $(embedFile "cubits/twine_f64.ptx")
 
