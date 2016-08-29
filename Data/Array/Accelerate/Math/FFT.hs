@@ -48,6 +48,7 @@ import qualified Data.Array.Accelerate.Math.FFT.CUDA      as CUDA
 
 import Data.Bits
 
+
 isPow2 :: Int -> Bool
 isPow2 x = x .&. (x-1) == 0
 
@@ -60,8 +61,8 @@ isPow2 x = x .&. (x-1) == 0
 --
 fft1D :: (P.Num e, A.RealFloat e, A.FromIntegral Int e, A.IsFloating e)
       => Mode
-      -> Vector (Complex e)
-      -> Acc (Vector (Complex e))
+      -> Array DIM1 (Complex e)
+      -> Acc (Array DIM1 (Complex e))
 fft1D mode vec
   = let Z :. len = arrayShape vec
     in
@@ -70,18 +71,16 @@ fft1D mode vec
 fft1D' :: forall e. (P.Num e, A.RealFloat e, A.FromIntegral Int e, A.IsFloating e)
        => Mode
        -> Int
-       -> Acc (Vector (Complex e))
-       -> Acc (Vector (Complex e))
-fft1D' mode len vec
+       -> Acc (Array DIM1 (Complex e))
+       -> Acc (Array DIM1 (Complex e))
+fft1D' mode len arr
   = let sign    = signOfMode mode :: e
         scale   = P.fromIntegral len
+        go      =
 #ifdef ACCELERATE_CUDA_BACKEND
-        sh      = (Z:.len)
-        vec'    = CUDA.fft mode sh fft' vec
-#else
-        vec'    = fft' vec
+                  foreignAcc (CUDA.fft mode (Z :. len)) $
 #endif
-        fft' a  = fft sign Z len a
+                  fft sign Z len
     in
     if P.not (isPow2 len)
        then error $ unlines
@@ -89,8 +88,8 @@ fft1D' mode len vec
               , "  Array dimensions must be powers of two, but are: " P.++ showShape (Z:.len) ]
 
        else case mode of
-                 Inverse -> A.map (/scale) vec'
-                 _       -> vec'
+                 Inverse -> A.map (/scale) (go arr)
+                 _       -> go arr
 
 
 -- Matrix Transform
@@ -118,12 +117,12 @@ fft2D' :: forall e. (P.Num e, A.RealFloat e, A.FromIntegral Int e, A.IsFloating 
 fft2D' mode width height arr
   = let sign    = signOfMode mode :: e
         scale   = P.fromIntegral (width * height)
+        go      =
 #ifdef ACCELERATE_CUDA_BACKEND
-        sh      = (Z:.height:.width)
-        arr'    = CUDA.fft mode sh fft' arr
-#else
-        arr'    = fft' arr
+                  foreignAcc (CUDA.fft mode (Z :. height :. width)) $
 #endif
+                  fft'
+
         fft' a  = A.transpose . fft sign (Z:.width)  height
               >-> A.transpose . fft sign (Z:.height) width
                 $ a
@@ -134,8 +133,8 @@ fft2D' mode width height arr
               , "  Array dimensions must be powers of two, but are: " P.++ showShape (Z:.height:.width) ]
 
        else case mode of
-                 Inverse -> A.map (/scale) arr'
-                 _       -> arr'
+                 Inverse -> A.map (/scale) (go arr)
+                 _       -> go arr
 
 
 -- Cube Transform
@@ -164,12 +163,12 @@ fft3D' :: forall e. (P.Num e, A.RealFloat e, A.FromIntegral Int e, A.IsFloating 
 fft3D' mode width height depth arr
   = let sign    = signOfMode mode :: e
         scale   = P.fromIntegral (width * height)
+        go      =
 #ifdef ACCELERATE_CUDA_BACKEND
-        sh      = (Z:.depth:.height:.width)
-        arr'    = CUDA.fft mode sh fft' arr
-#else
-        arr'    = fft' arr
+                  foreignAcc (CUDA.fft mode (Z :. depth :. height :. width)) $
 #endif
+                  fft'
+
         fft' a  = rotate3D . fft sign (Z:.width :.depth)  height
               >-> rotate3D . fft sign (Z:.height:.width)  depth
               >-> rotate3D . fft sign (Z:.depth :.height) width
@@ -181,8 +180,8 @@ fft3D' mode width height depth arr
               , "  Array dimensions must be powers of two, but are: " P.++ showShape (Z:.depth:.height:.width) ]
 
        else case mode of
-                 Inverse -> A.map (/scale) arr'
-                 _       -> arr'
+                 Inverse -> A.map (/scale) (go arr)
+                 _       -> go arr
 
 
 
