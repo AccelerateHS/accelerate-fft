@@ -26,6 +26,7 @@ import Data.Array.Accelerate.Array.Sugar                          as S hiding ( 
 import Data.Array.Accelerate.Type
 
 import Data.Maybe
+import Control.Applicative
 import Control.Concurrent.MVar
 import Foreign.CUDA.FFT
 import Foreign.Storable
