@@ -29,6 +29,7 @@ packages:
 
 extra-deps:
 - 'base-orphans-0.4.4'
+- 'file-embed-0.0.10'
 - 'SafeSemaphore-0.10.1'
 - 'unique-0'
 
