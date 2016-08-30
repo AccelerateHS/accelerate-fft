@@ -32,7 +32,6 @@ import Data.Maybe
 import Foreign.CUDA.FFT
 import Foreign.Storable
 import System.IO.Unsafe
-import System.Mem.Weak
 import Text.Printf
 import qualified Foreign.CUDA.Analysis                            as CUDA
 import qualified Foreign.CUDA.Types                               as CUDA
@@ -57,14 +56,18 @@ fft mode sh = CUDAForeignAcc name foreignFFT
     -- if this operation is embedded in a reusable AST (e.g. run1). Note that
     -- FFT plans do not appear to be associated with a specific device context.
     --
-    hndl = unsafePerformIO $ do
-      plan <- case shapeToList sh of
-                [width]                -> plan1D              width transform 1
-                [width, height]        -> plan2D       height width transform
-                [width, height, depth] -> plan3D depth height width transform
-                _                      -> error "accelerate-fft cannot use CUFFT for arrays of dimensions higher than 3"
-      addFinalizer plan (destroy plan)
-      return plan
+    plan = unsafePerformIO $ do
+      let sh' = shapeToList sh
+      modifyMVar _fft_plan $ \ps -> do
+        case lookup (transform, sh') ps of
+          Just p  -> return (ps, p)
+          Nothing -> do
+            p <- case sh' of
+                   [width]                -> plan1D              width transform 1
+                   [width, height]        -> plan2D       height width transform
+                   [width, height, depth] -> plan3D depth height width transform
+                   _                      -> error "accelerate-fft cannot use CUFFT for arrays of dimensions higher than 3"
+            return (((transform,sh'), p) : ps, p)
 
     -- Retrieve the CUDA functions to convert between SoA and AoS
     -- representations. These are specific to a given execution context. We use
@@ -120,7 +123,7 @@ fft mode sh = CUDAForeignAcc name foreignFFT
               CUDA.launchKernel a2c (numBlocks,1,1) (blockSize,1,1) sharedMem (Just stream) [CUDA.VArg din_tmp, CUDA.VArg din_re, CUDA.VArg din_im, CUDA.IArg (P.fromIntegral n)]
 
               -- Execute the FFT (out-of-place)
-              setStream hndl stream
+              setStream plan stream
               executeFFT din_tmp dout_tmp
 
               -- Convert data into SoA format
@@ -131,10 +134,10 @@ fft mode sh = CUDAForeignAcc name foreignFFT
     executeFFT :: CUDA.DevicePtr e -> CUDA.DevicePtr e -> IO ()
     executeFFT iptr optr
       = case (floatingType :: FloatingType e) of
-          TypeFloat{}   -> execC2C hndl iptr optr sign
-          TypeDouble{}  -> execZ2Z hndl iptr optr sign
-          TypeCFloat{}  -> execC2C hndl (CUDA.castDevPtr iptr) (CUDA.castDevPtr optr) sign
-          TypeCDouble{} -> execZ2Z hndl (CUDA.castDevPtr iptr) (CUDA.castDevPtr optr) sign
+          TypeFloat{}   -> execC2C plan iptr optr sign
+          TypeDouble{}  -> execZ2Z plan iptr optr sign
+          TypeCFloat{}  -> execC2C plan (CUDA.castDevPtr iptr) (CUDA.castDevPtr optr) sign
+          TypeCDouble{} -> execZ2Z plan (CUDA.castDevPtr iptr) (CUDA.castDevPtr optr) sign
 
     withComplexArray
         :: forall sh' a.
@@ -149,8 +152,10 @@ fft mode sh = CUDAForeignAcc name foreignFFT
           k d1 d2
       --
       | otherwise
-      = error "Always code as if the person who ends up maintaining your code is a violent psychopath who knows where you live."
-          -- John Woods
+      = error $ unlines [ "Always code as if the person who ends up maintaining your code"
+                        , "is a violent psychopath who knows where you live."
+                        , "  -- John Woods"
+                        ]
 
     withScalarArray
         :: Array sh' e
@@ -200,5 +205,16 @@ _ptx_twine_mdl = unsafePerformIO $ do
   _  <- mkWeakMVar mv
       $ withMVar mv
       $ mapM_ (\((ctx,_), mdl) -> bracket_ (CUDA.push ctx) CUDA.pop (CUDA.unload mdl))  -- what if the context is dead?
+  return mv
+
+
+-- Cache the FFT planning step for faster repeat evaluations.
+--
+_fft_plan :: MVar [((Type, [Int]), Handle)]
+_fft_plan = unsafePerformIO $ do
+  mv <- newMVar []
+  _  <- mkWeakMVar mv
+      $ withMVar mv
+      $ mapM_ (\(_,plan) -> destroy plan)
   return mv
 
