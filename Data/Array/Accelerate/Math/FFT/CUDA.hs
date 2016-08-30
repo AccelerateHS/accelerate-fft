@@ -48,7 +48,7 @@ import Prelude                                                    as P
 fft :: forall e sh. (Shape sh, Elt e, IsFloating e)
     => Mode
     -> sh
-    -> CUDAForeignAcc (Array sh (Complex e)) (Array sh (Complex e))
+    -> CUDAForeignAcc (Array sh (Complex e) -> Array sh (Complex e))
 fft mode sh = CUDAForeignAcc name foreignFFT
   where
     -- Plan the FFT.
