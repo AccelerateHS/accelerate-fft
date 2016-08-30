@@ -1,7 +1,7 @@
 # For more information, see: https://github.com/commercialhaskell/stack/blob/release/doc/yaml_configuration.md
 # vim: nospell
 
-resolver: lts-6.1
+resolver: lts-6.14
 
 packages:
 - '.'
@@ -34,13 +34,15 @@ extra-deps:
 flags:
   accelerate:
     unsafe-checks: false
-    bounds-checks: true
-    debug: true
+    bounds-checks: false
+    debug: false
     internal-checks: false
   accelerate-cuda:
     debug: false
   accelerate-fft:
     cuda: true
+    llvm-cpu: false
+    llvm-gpu: false
 
 # Extra package databases containing global packages
 extra-package-dbs: []

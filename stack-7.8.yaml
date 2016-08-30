@@ -37,13 +37,15 @@ extra-deps:
 flags:
   accelerate:
     unsafe-checks: false
-    bounds-checks: true
+    bounds-checks: false
     debug: false
     internal-checks: false
   accelerate-cuda:
     debug: false
   accelerate-fft:
     cuda: true
+    llvm-cpu: false
+    llvm-gpu: false
 
 # Extra package databases containing global packages
 extra-package-dbs: []

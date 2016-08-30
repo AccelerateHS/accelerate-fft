@@ -7,7 +7,9 @@ Build-type:             Simple
 Synopsis:               FFT using the Accelerate library
 Description:
   Rank-polymorphic discrete Fourier transform (DFT), computed with a fast
-  Fourier transform (FFT) algorithm using the Accelerate library
+  Fourier transform (FFT) algorithm using the Accelerate library. Note that
+  optimised implementations are available via foreign libraries, but must be
+  explicitly enabled.
   .
   Refer to the main /Accelerate/ package for more information:
   <http://hackage.haskell.org/package/accelerate>
@@ -17,7 +19,8 @@ License:                BSD3
 License-file:           LICENSE
 Author:                 Manuel M T Chakravarty,
                         Gabriele Keller,
-                        Trevor L. McDonell
+                        Trevor L. McDonell,
+                        Robert Clifton-Everest
 Maintainer:             Manuel M T Chakravarty <chak@cse.unsw.edu.au>
 Homepage:               https://github.com/AccelerateHS/accelerate-fft
 Bug-reports:            https://github.com/AccelerateHS/accelerate/issues
@@ -32,8 +35,17 @@ extra-source-files:
     cubits/twine_f64.cu
 
 Flag cuda
-  Description:          Enable support for using CUFFT via the CUDA backend's FFI
-  Default:              True
+  Description:          Use CUFFT-based implementation in the CUDA backend
+  Default:              False
+
+Flag llvm-gpu
+  Description:          Use CUFFT-based implementation in the LLVM.PTX backend
+  Default:              False
+
+Flag llvm-cpu
+  Description:          Use FFTW-based implementation in the LLVM.Native backend
+  Default:              False
+
 
 Library
   build-depends:
@@ -63,6 +75,29 @@ Library
 
     other-modules:
       Data.Array.Accelerate.Math.FFT.CUDA
+
+  if flag(llvm-cpu)
+    cpp-options:        -DACCELERATE_LLVM_NATIVE_BACKEND
+    build-depends:
+        accelerate-llvm         == 2.0.*
+      , accelerate-llvm-native  == 2.0.*
+      , carray                  >= 0.1.5
+      , fft                     >= 1.8
+      , storable-complex        >= 0.2
+
+    other-modules:
+      Data.Array.Accelerate.Math.FFT.LLVM.Native
+
+  if flag(llvm-gpu)
+    cpp-options:        -DACCELERATE_LLVM_PTX_BACKEND
+    build-depends:
+        accelerate-llvm         == 2.0.*
+      , accelerate-llvm-ptx     == 2.0.*
+      , cuda                    >= 0.5
+      , cufft                   >= 0.1.2
+
+    other-modules:
+      Data.Array.Accelerate.Math.FFT.LLVM.PTX
 
   -- Don't add the extensions list here. Instead, place individual LANGUAGE
   -- pragmas in the files that require a specific extension. This means the
