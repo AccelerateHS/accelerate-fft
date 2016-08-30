@@ -18,8 +18,10 @@ module Data.Array.Accelerate.Math.FFT.Twine
 import Data.Array.Accelerate                                      as A
 import Data.Array.Accelerate.Data.Complex
 
+#if defined(ACCELERATE_CUDA_BACKEND) || defined(ACCELERATE_LLVM_PTX_BACKEND)
 import Data.FileEmbed
 import Data.ByteString                                            ( ByteString )
+#endif
 
 
 -- Interleave the real and imaginary components in a complex array and produce a
