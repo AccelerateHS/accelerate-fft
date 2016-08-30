@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 -- |
@@ -62,6 +63,8 @@ deinterleave arr = generate sh swizzle
  #-}
 
 
+#if defined(ACCELERATE_CUDA_BACKEND) || defined(ACCELERATE_LLVM_PTX_BACKEND)
+
 -- Embedded PTX code for interleave and deinterleave for 32- and 64-bit floating
 -- point numbers respectively. These can be loaded and executed by the CUDA
 -- driver at runtime as required.
@@ -78,4 +81,6 @@ ptx_twine_f32 = $(makeRelativeToProject "cubits/twine_f32.ptx" >>= embedFile)
 
 ptx_twine_f64 :: ByteString
 ptx_twine_f64 = $(makeRelativeToProject "cubits/twine_f64.ptx" >>= embedFile)
+
+#endif
 

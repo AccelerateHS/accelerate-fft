@@ -52,7 +52,6 @@ Library
         base                    >= 4.7
       , accelerate              == 2.0.*
       , bytestring              >= 0.9
-      , file-embed              >= 0.0.10
 
   exposed-modules:
       Data.Array.Accelerate.Math.FFT
@@ -72,6 +71,7 @@ Library
         accelerate-cuda         == 2.0.*
       , cuda                    >= 0.5
       , cufft                   >= 0.1.2
+      , file-embed              >= 0.0.10
 
     other-modules:
       Data.Array.Accelerate.Math.FFT.CUDA
@@ -95,6 +95,7 @@ Library
       , accelerate-llvm-ptx     == 2.0.*
       , cuda                    >= 0.5
       , cufft                   >= 0.1.2
+      , file-embed              >= 0.0.10
 
     other-modules:
       Data.Array.Accelerate.Math.FFT.LLVM.PTX
