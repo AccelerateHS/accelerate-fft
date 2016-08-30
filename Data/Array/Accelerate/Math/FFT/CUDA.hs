@@ -25,9 +25,10 @@ import Data.Array.Accelerate.CUDA.Foreign
 import Data.Array.Accelerate.Array.Sugar                          as S hiding ( allocateArray )
 import Data.Array.Accelerate.Type
 
-import Data.Maybe
 import Control.Applicative
 import Control.Concurrent.MVar
+import Control.Exception
+import Data.Maybe
 import Foreign.CUDA.FFT
 import Foreign.Storable
 import System.IO.Unsafe
@@ -194,5 +195,10 @@ fft mode sh = CUDAForeignAcc name foreignFFT
 -- this table which are no longer valid.
 --
 _ptx_twine_mdl :: MVar [((CUDA.Context, Int), CUDA.Module)]
-_ptx_twine_mdl = unsafePerformIO $ newMVar []
+_ptx_twine_mdl = unsafePerformIO $ do
+  mv <- newMVar []
+  _  <- mkWeakMVar mv
+      $ withMVar mv
+      $ mapM_ (\((ctx,_), mdl) -> bracket_ (CUDA.push ctx) CUDA.pop (CUDA.unload mdl))  -- what if the context is dead?
+  return mv
 
