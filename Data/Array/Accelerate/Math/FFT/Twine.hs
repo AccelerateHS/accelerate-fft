@@ -74,8 +74,8 @@ deinterleave arr = generate sh swizzle
 --
 
 ptx_twine_f32 :: ByteString
-ptx_twine_f32 = $(embedFile "cubits/twine_f32.ptx")
+ptx_twine_f32 = $(makeRelativeToProject "cubits/twine_f32.ptx" >>= embedFile)
 
 ptx_twine_f64 :: ByteString
-ptx_twine_f64 = $(embedFile "cubits/twine_f64.ptx")
+ptx_twine_f64 = $(makeRelativeToProject "cubits/twine_f64.ptx" >>= embedFile)
 
