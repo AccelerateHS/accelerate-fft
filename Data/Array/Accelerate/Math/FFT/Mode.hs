@@ -13,7 +13,10 @@ module Data.Array.Accelerate.Math.FFT.Mode
   where
 
 
-data Mode = Forward | Reverse | Inverse
+data Mode
+  = Forward         -- ^ Forward DFT
+  | Reverse         -- ^ Inverse DFT, un-normalised
+  | Inverse         -- ^ Inverse DFT, normalised
   deriving (Eq, Show)
 
 signOfMode :: Num a => Mode -> a
