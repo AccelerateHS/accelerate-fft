@@ -43,11 +43,14 @@ import Data.Array.Accelerate.Data.Complex
 
 import Data.Array.Accelerate.Math.FFT.Mode
 
-#ifdef ACCELERATE_CUDA_BACKEND
-import qualified Data.Array.Accelerate.Math.FFT.CUDA                as CUDA
-#endif
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
 import qualified Data.Array.Accelerate.Math.FFT.LLVM.Native         as Native
+#endif
+#ifdef ACCELERATE_LLVM_PTX_BACKEND
+import qualified Data.Array.Accelerate.Math.FFT.LLVM.PTX            as PTX
+#endif
+#ifdef ACCELERATE_CUDA_BACKEND
+import qualified Data.Array.Accelerate.Math.FFT.CUDA                as CUDA
 #endif
 
 import Data.Bits
@@ -82,11 +85,14 @@ fft1D' mode len arr
   = let sign    = signOfMode mode :: e
         scale   = P.fromIntegral len
         go      =
-#ifdef ACCELERATE_CUDA_BACKEND
-                  foreignAcc (CUDA.fft mode (Z :. len)) $
-#endif
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
                   foreignAcc (Native.fft1D mode) $
+#endif
+#ifdef ACCELERATE_LLVM_PTX_BACKEND
+                  foreignAcc (PTX.fft1D mode) $
+#endif
+#ifdef ACCELERATE_CUDA_BACKEND
+                  foreignAcc (CUDA.fft mode (Z :. len)) $
 #endif
                   fft sign Z len
     in
@@ -126,11 +132,14 @@ fft2D' mode width height arr
   = let sign    = signOfMode mode :: e
         scale   = P.fromIntegral (width * height)
         go      =
-#ifdef ACCELERATE_CUDA_BACKEND
-                  foreignAcc (CUDA.fft mode (Z :. height :. width)) $
-#endif
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
                   foreignAcc (Native.fft2D mode) $
+#endif
+#ifdef ACCELERATE_LLVM_PTX_BACKEND
+                  foreignAcc (PTX.fft2D mode) $
+#endif
+#ifdef ACCELERATE_CUDA_BACKEND
+                  foreignAcc (CUDA.fft mode (Z :. height :. width)) $
 #endif
                   fft'
 
@@ -175,11 +184,14 @@ fft3D' mode width height depth arr
   = let sign    = signOfMode mode :: e
         scale   = P.fromIntegral (width * height)
         go      =
-#ifdef ACCELERATE_CUDA_BACKEND
-                  foreignAcc (CUDA.fft mode (Z :. depth :. height :. width)) $
-#endif
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
                   foreignAcc (Native.fft3D mode) $
+#endif
+#ifdef ACCELERATE_LLVM_PTX_BACKEND
+                  foreignAcc (PTX.fft3D mode) $
+#endif
+#ifdef ACCELERATE_CUDA_BACKEND
+                  foreignAcc (CUDA.fft mode (Z :. depth :. height :. width)) $
 #endif
                   fft'
 
