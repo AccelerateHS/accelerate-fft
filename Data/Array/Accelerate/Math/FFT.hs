@@ -28,6 +28,7 @@
 module Data.Array.Accelerate.Math.FFT (
 
   Mode(..),
+  FFTElt,
   fft1D, fft1D',
   fft2D, fft2D',
   fft3D, fft3D',
@@ -52,8 +53,9 @@ import qualified Data.Array.Accelerate.Math.FFT.LLVM.Native         as Native
 import Data.Bits
 
 
-isPow2 :: Int -> Bool
-isPow2 x = x .&. (x-1) == 0
+-- The type of supported FFT elements; namely 'Float' and 'Double'.
+--
+type FFTElt e = (P.Num e, A.RealFloat e, A.FromIntegral Int e, A.IsFloating e)
 
 
 -- Vector Transform
@@ -62,7 +64,7 @@ isPow2 x = x .&. (x-1) == 0
 -- Discrete Fourier Transform of a vector. Array dimensions must be powers of
 -- two else error.
 --
-fft1D :: (P.Num e, A.RealFloat e, A.FromIntegral Int e, A.IsFloating e)
+fft1D :: FFTElt e
       => Mode
       -> Array DIM1 (Complex e)
       -> Acc (Array DIM1 (Complex e))
@@ -71,7 +73,7 @@ fft1D mode vec
     in
     fft1D' mode len (use vec)
 
-fft1D' :: forall e. (P.Num e, A.RealFloat e, A.FromIntegral Int e, A.IsFloating e)
+fft1D' :: forall e. FFTElt e
        => Mode
        -> Int
        -> Acc (Array DIM1 (Complex e))
@@ -104,7 +106,7 @@ fft1D' mode len arr
 -- Discrete Fourier Transform of a matrix. Array dimensions must be powers of
 -- two else error.
 --
-fft2D :: (P.Num e, A.RealFloat e, A.FromIntegral Int e, A.IsFloating e)
+fft2D :: FFTElt e
       => Mode
       -> Array DIM2 (Complex e)
       -> Acc (Array DIM2 (Complex e))
@@ -114,7 +116,7 @@ fft2D mode arr
     fft2D' mode width height (use arr)
 
 
-fft2D' :: forall e. (P.Num e, A.RealFloat e, A.FromIntegral Int e, A.IsFloating e)
+fft2D' :: forall e. FFTElt e
        => Mode
        -> Int   -- ^ width
        -> Int   -- ^ height
@@ -152,7 +154,7 @@ fft2D' mode width height arr
 -- Discrete Fourier Transform of a 3D array. Array dimensions must be power of
 -- two else error.
 --
-fft3D :: (P.Num e, A.RealFloat e, A.FromIntegral Int e, A.IsFloating e)
+fft3D :: FFTElt e
       => Mode
       -> Array DIM3 (Complex e)
       -> Acc (Array DIM3 (Complex e))
@@ -162,7 +164,7 @@ fft3D mode arr
     fft3D' mode width height depth (use arr)
 
 
-fft3D' :: forall e. (P.Num e, A.RealFloat e, A.FromIntegral Int e, A.IsFloating e)
+fft3D' :: forall e. FFTElt e
        => Mode
        -> Int   -- ^ width
        -> Int   -- ^ height
@@ -268,4 +270,8 @@ append xs ys
     generate (lift (sh :. n+m))
              (\ix -> let sz :. i = unlift ix :: Exp sh :. Exp Int
                      in  i A.<* n ? (xs ! lift (sz:.i), ys ! lift (sz:.i-n) ))
+
+
+isPow2 :: Int -> Bool
+isPow2 x = x .&. (x-1) == 0
 
