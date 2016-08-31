@@ -41,8 +41,8 @@ extra-deps:
 
 # Override default flag values for local packages and extra-deps
 flags:
-  llvm-general:
-    shared-llvm: true
+  # llvm-general:
+  #   shared-llvm: true
   accelerate:
     unsafe-checks: false
     bounds-checks: false
