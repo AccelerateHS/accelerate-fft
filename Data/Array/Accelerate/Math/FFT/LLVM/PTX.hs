@@ -88,15 +88,16 @@ cuFFT :: forall sh e. (Shape sh, IsFloating e)
       -> Array (sh:.Int) e
       -> LLVM PTX (Array (sh:.Int) e)
 cuFFT mode stream arr =
-  withScalarArrayPtr arr stream $ \d_cs -> liftIO $
-  withLifetime           stream $ \st   -> do
-    p <- plan (shape arr) (undefined::e)
+  withScalarArrayPtr arr stream $ \d_arr -> liftIO $
+  withLifetime           stream $ \st    -> do
+    let sh :. sz = shape arr
+    p <- plan (sh :. sz `quot` 2) (undefined::e)  -- recall this is an array of packed (Vec2 e)
     FFT.setStream p st
     case floatingType :: FloatingType e of
-      TypeFloat{}   -> FFT.execC2C p d_cs d_cs (signOfMode mode) >> return arr
-      TypeDouble{}  -> FFT.execZ2Z p d_cs d_cs (signOfMode mode) >> return arr
-      TypeCFloat{}  -> FFT.execC2C p d_cs d_cs (signOfMode mode) >> return arr
-      TypeCDouble{} -> FFT.execZ2Z p d_cs d_cs (signOfMode mode) >> return arr
+      TypeFloat{}   -> FFT.execC2C p d_arr d_arr (signOfMode mode) >> return arr
+      TypeDouble{}  -> FFT.execZ2Z p d_arr d_arr (signOfMode mode) >> return arr
+      TypeCFloat{}  -> FFT.execC2C p d_arr d_arr (signOfMode mode) >> return arr
+      TypeCDouble{} -> FFT.execZ2Z p d_arr d_arr (signOfMode mode) >> return arr
 
 
 -- | Convert an unzipped Accelerate array of complex numbers into a (new) packed
