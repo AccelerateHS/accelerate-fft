@@ -12,8 +12,11 @@
 --
 --
 
-module Data.Array.Accelerate.Math.FFT.CUDA
-  where
+module Data.Array.Accelerate.Math.FFT.CUDA (
+
+  fft,
+
+) where
 
 import Data.Array.Accelerate.Math.FFT.Mode
 import Data.Array.Accelerate.Math.FFT.Twine
