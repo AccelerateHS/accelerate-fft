@@ -82,7 +82,7 @@ Library
         accelerate-llvm         == 2.0.*
       , accelerate-llvm-native  == 2.0.*
       , carray                  >= 0.1.5
-      , fft                     >= 1.8
+      , fft                     >= 0.1.8
       , storable-complex        >= 0.2
 
     other-modules:

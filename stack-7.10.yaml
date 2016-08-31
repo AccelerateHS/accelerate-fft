@@ -18,6 +18,15 @@ packages:
   extra-dep: true
 
 - location:
+    git:    https://github.com/tmcdonell/accelerate-llvm.git
+    commit: 735edfa893a84c8cc48f77e5fed0b7e0d40cc263
+  extra-dep: true
+  subdirs:
+    - 'accelerate-llvm'
+    - 'accelerate-llvm-native'
+    - 'accelerate-llvm-ptx'
+
+- location:
     git:    https://github.com/tmcdonell/cuda.git
     commit: 5866f6d85bd530cf419e0aeec3ff4c92a9e7c509
   extra-dep: true
@@ -28,10 +37,16 @@ packages:
   extra-dep: true
 
 extra-deps:
+- 'chaselev-deque-0.5.0.5'
+- 'libffi-0.1'
+- 'llvm-general-3.5.1.2'
+- 'llvm-general-pure-3.5.1.0'
 - 'unique-0'
 
 # Override default flag values for local packages and extra-deps
 flags:
+  llvm-general:
+    shared-llvm: true
   accelerate:
     unsafe-checks: false
     bounds-checks: false
@@ -41,7 +56,7 @@ flags:
     debug: false
   accelerate-fft:
     cuda: true
-    llvm-cpu: false
+    llvm-cpu: true
     llvm-gpu: false
 
 # Extra package databases containing global packages

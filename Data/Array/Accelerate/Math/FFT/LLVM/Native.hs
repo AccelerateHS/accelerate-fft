@@ -1,8 +1,10 @@
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE GADTs               #-}
+{-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeOperators       #-}
 -- |
 -- Module      : Data.Array.Accelerate.Math.FFT.LLVM.Native
 -- Copyright   : [2016] Manuel M T Chakravarty, Gabriele Keller, Trevor L. McDonell
@@ -13,8 +15,15 @@
 -- Portability : non-portable (GHC extensions)
 --
 
-module Data.Array.Accelerate.Math.FFT.LLVM.Native
-  where
+module Data.Array.Accelerate.Math.FFT.LLVM.Native (
+
+  fft1D,
+  fft2D,
+  fft3D,
+
+) where
+
+import Data.Array.Accelerate.Math.FFT.Mode
 
 import Data.Array.Accelerate                                        as A
 import Data.Array.Accelerate.Type                                   as A
@@ -24,16 +33,88 @@ import Data.Array.Accelerate.Array.Data                             as A
 import Data.Array.Accelerate.Array.Unique                           as A
 import Data.Array.Accelerate.Data.Complex                           as A
 
+import Data.Array.Accelerate.LLVM.Native.Foreign
+
 import Data.Ix                                                      ( Ix )
 import Data.Array.CArray                                            ( CArray )
 import qualified Data.Array.CArray                                  as C
+
+import Math.FFT.Base                                                ( FFTWReal, Sign(..), Flag, measure, preserveInput )
+import qualified Math.FFT                                           as FFT
 
 import Foreign.Ptr
 import Foreign.Storable
 import Foreign.Storable.Complex                                     ()
 
-import qualified Math.FFT                                           as FFT
+import Data.Bits
+import Text.Printf
 
+
+fft1D :: forall e. (Elt e, IsFloating e)
+      => Mode
+      -> ForeignAcc (Vector (Complex e) -> Vector (Complex e))
+fft1D mode
+  = ForeignAcc (nameOf mode (undefined::DIM1))
+  $ case floatingType :: FloatingType e of
+      TypeFloat{}   -> liftIO . liftAtoC go
+      TypeDouble{}  -> liftIO . liftAtoC go
+      TypeCFloat{}  -> liftIO . liftAtoC go
+      TypeCDouble{} -> liftIO . liftAtoC go
+  where
+    go :: (FFTWReal r, ArrayPtrs e ~ Ptr r) => CArray Int (Complex r) -> CArray Int (Complex r)
+    go = FFT.dftGU (signOf mode) flags [0]
+
+
+fft2D :: forall e. (Elt e, IsFloating e)
+      => Mode
+      -> ForeignAcc (Array DIM2 (Complex e) -> Array DIM2 (Complex e))
+fft2D mode
+  = ForeignAcc (nameOf mode (undefined::DIM2))
+  $ case floatingType :: FloatingType e of
+      TypeFloat{}   -> liftIO . liftAtoC go
+      TypeDouble{}  -> liftIO . liftAtoC go
+      TypeCFloat{}  -> liftIO . liftAtoC go
+      TypeCDouble{} -> liftIO . liftAtoC go
+  where
+    go :: (FFTWReal r, ArrayPtrs e ~ Ptr r) => CArray (Int,Int) (Complex r) -> CArray (Int,Int) (Complex r)
+    go = FFT.dftGU (signOf mode) flags [0,1]
+
+
+fft3D :: forall e. (Elt e, IsFloating e)
+      => Mode
+      -> ForeignAcc (Array DIM3 (Complex e) -> Array DIM3 (Complex e))
+fft3D mode
+  = ForeignAcc (nameOf mode (undefined::DIM3))
+  $ case floatingType :: FloatingType e of
+      TypeFloat{}   -> liftIO . liftAtoC go
+      TypeDouble{}  -> liftIO . liftAtoC go
+      TypeCFloat{}  -> liftIO . liftAtoC go
+      TypeCDouble{} -> liftIO . liftAtoC go
+  where
+    go :: (FFTWReal r, ArrayPtrs e ~ Ptr r) => CArray (Int,Int,Int) (Complex r) -> CArray (Int,Int,Int) (Complex r)
+    go = FFT.dftGU (signOf mode) flags [0,1,2]
+
+
+signOf :: Mode -> Sign
+signOf Forward = DFTForward
+signOf _       = DFTBackward
+
+flags :: Flag
+flags = measure .|. preserveInput
+
+nameOf :: forall sh. Shape sh => Mode -> sh -> String
+nameOf Forward _ = printf "FFTW.dft%dD"  (rank (undefined::sh))
+nameOf _       _ = printf "FFTW.idft%dD" (rank (undefined::sh))
+
+
+-- | Lift an operation on CArray into an operation on Accelerate arrays
+--
+liftAtoC
+    :: (IxShapeRepr (EltRepr ix) ~ EltRepr sh, Shape sh, Ix ix, Elt ix, Elt e, IsFloating e, Storable e', ArrayPtrs e ~ Ptr e')
+    => (CArray ix (Complex e') -> CArray ix (Complex e'))
+    -> Array sh (Complex e)
+    -> IO (Array sh (Complex e))
+liftAtoC f a = c2a . f =<< a2c a
 
 
 -- | Convert a multidimensional Accelerate array of complex numbers into
@@ -141,22 +222,22 @@ withComplexArrayPtrs
 withComplexArrayPtrs (Array _ adata) k
   | AD_Pair (AD_Pair AD_Unit ad1) ad2 <- adata
   = case floatingType :: FloatingType e of
-    TypeFloat{}   -> withArrayData arrayElt ad1 $ \p1 -> withArrayData arrayElt ad2 $ \p2 -> k p1 p2
-    TypeDouble{}  -> withArrayData arrayElt ad1 $ \p1 -> withArrayData arrayElt ad2 $ \p2 -> k p1 p2
-    TypeCFloat{}  -> withArrayData arrayElt ad1 $ \p1 -> withArrayData arrayElt ad2 $ \p2 -> k p1 p2
-    TypeCDouble{} -> withArrayData arrayElt ad1 $ \p1 -> withArrayData arrayElt ad2 $ \p2 -> k p1 p2
+      TypeFloat{}   -> withArrayData arrayElt ad1 $ \p1 -> withArrayData arrayElt ad2 $ \p2 -> k p1 p2
+      TypeDouble{}  -> withArrayData arrayElt ad1 $ \p1 -> withArrayData arrayElt ad2 $ \p2 -> k p1 p2
+      TypeCFloat{}  -> withArrayData arrayElt ad1 $ \p1 -> withArrayData arrayElt ad2 $ \p2 -> k p1 p2
+      TypeCDouble{} -> withArrayData arrayElt ad1 $ \p1 -> withArrayData arrayElt ad2 $ \p2 -> k p1 p2
 
-withScalarArrayPtrs
-    :: forall sh e a. IsFloating e
-    => Array sh e
-    -> (ArrayPtrs e -> IO a)
-    -> IO a
-withScalarArrayPtrs (Array _ adata) =
-  case floatingType :: FloatingType e of
-    TypeFloat{}   -> withArrayData arrayElt adata
-    TypeDouble{}  -> withArrayData arrayElt adata
-    TypeCFloat{}  -> withArrayData arrayElt adata
-    TypeCDouble{} -> withArrayData arrayElt adata
+-- withScalarArrayPtrs
+--     :: forall sh e a. IsFloating e
+--     => Array sh e
+--     -> (ArrayPtrs e -> IO a)
+--     -> IO a
+-- withScalarArrayPtrs (Array _ adata) =
+--   case floatingType :: FloatingType e of
+--     TypeFloat{}   -> withArrayData arrayElt adata
+--     TypeDouble{}  -> withArrayData arrayElt adata
+--     TypeCFloat{}  -> withArrayData arrayElt adata
+--     TypeCDouble{} -> withArrayData arrayElt adata
 
 withArrayData
     :: (ArrayPtrs e ~ Ptr a)

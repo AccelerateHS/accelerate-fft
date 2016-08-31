@@ -35,15 +35,18 @@ module Data.Array.Accelerate.Math.FFT (
 
 ) where
 
-import Prelude                                            as P
-import Data.Array.Accelerate                              as A
-import Data.Array.Accelerate.Array.Sugar                  ( showShape )
+import Prelude                                                      as P
+import Data.Array.Accelerate                                        as A
+import Data.Array.Accelerate.Array.Sugar                            ( showShape )
 import Data.Array.Accelerate.Data.Complex
 
 import Data.Array.Accelerate.Math.FFT.Mode
 
 #ifdef ACCELERATE_CUDA_BACKEND
-import qualified Data.Array.Accelerate.Math.FFT.CUDA      as CUDA
+import qualified Data.Array.Accelerate.Math.FFT.CUDA                as CUDA
+#endif
+#ifdef ACCELERATE_LLVM_NATIVE_BACKEND
+import qualified Data.Array.Accelerate.Math.FFT.LLVM.Native         as Native
 #endif
 
 import Data.Bits
@@ -79,6 +82,9 @@ fft1D' mode len arr
         go      =
 #ifdef ACCELERATE_CUDA_BACKEND
                   foreignAcc (CUDA.fft mode (Z :. len)) $
+#endif
+#ifdef ACCELERATE_LLVM_NATIVE_BACKEND
+                  foreignAcc (Native.fft1D mode) $
 #endif
                   fft sign Z len
     in
@@ -120,6 +126,9 @@ fft2D' mode width height arr
         go      =
 #ifdef ACCELERATE_CUDA_BACKEND
                   foreignAcc (CUDA.fft mode (Z :. height :. width)) $
+#endif
+#ifdef ACCELERATE_LLVM_NATIVE_BACKEND
+                  foreignAcc (Native.fft2D mode) $
 #endif
                   fft'
 
@@ -166,6 +175,9 @@ fft3D' mode width height depth arr
         go      =
 #ifdef ACCELERATE_CUDA_BACKEND
                   foreignAcc (CUDA.fft mode (Z :. depth :. height :. width)) $
+#endif
+#ifdef ACCELERATE_LLVM_NATIVE_BACKEND
+                  foreignAcc (Native.fft3D mode) $
 #endif
                   fft'
 

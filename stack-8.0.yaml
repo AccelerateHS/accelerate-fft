@@ -18,6 +18,15 @@ packages:
   extra-dep: true
 
 - location:
+    git:    https://github.com/tmcdonell/accelerate-llvm.git
+    commit: 735edfa893a84c8cc48f77e5fed0b7e0d40cc263
+  extra-dep: true
+  subdirs:
+    - 'accelerate-llvm'
+    - 'accelerate-llvm-native'
+    - 'accelerate-llvm-ptx'
+
+- location:
     git:    https://github.com/tmcdonell/cuda.git
     commit: 5866f6d85bd530cf419e0aeec3ff4c92a9e7c509
   extra-dep: true
@@ -32,6 +41,8 @@ extra-deps:
 
 # Override default flag values for local packages and extra-deps
 flags:
+  llvm-general:
+    shared-llvm: true
   accelerate:
     unsafe-checks: false
     bounds-checks: false
