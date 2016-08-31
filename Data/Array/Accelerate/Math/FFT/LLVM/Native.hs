@@ -39,7 +39,7 @@ import Data.Ix                                                      ( Ix )
 import Data.Array.CArray                                            ( CArray )
 import qualified Data.Array.CArray                                  as C
 
-import Math.FFT.Base                                                ( FFTWReal, Sign(..), Flag, measure, preserveInput )
+import Math.FFT.Base                                                ( FFTWReal, Sign(..), Flag, measure, destroyInput )
 import qualified Math.FFT                                           as FFT
 
 import Foreign.Ptr
@@ -100,7 +100,7 @@ signOf Forward = DFTForward
 signOf _       = DFTBackward
 
 flags :: Flag
-flags = measure .|. preserveInput
+flags = measure .|. destroyInput
 
 nameOf :: forall sh. Shape sh => Mode -> sh -> String
 nameOf Forward _ = printf "FFTW.dft%dD"  (rank (undefined::sh))
