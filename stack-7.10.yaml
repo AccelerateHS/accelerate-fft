@@ -9,7 +9,7 @@ packages:
 # extra-deps:
 - location:
     git:    https://github.com/AccelerateHS/accelerate.git
-    commit: 7dae007342d4e717643b5da675995e9b7b276028
+    commit: 6ee059a917ae925ef0c22467f7b478c4a9fb21a1
   extra-dep: true
 
 - location:
@@ -18,8 +18,8 @@ packages:
   extra-dep: true
 
 - location:
-    git:    https://github.com/tmcdonell/accelerate-llvm.git
-    commit: 9134da365f4f1a14b8624bcdad7b793be11ff26e
+    git:    https://github.com/AccelerateHS/accelerate-llvm.git
+    commit: f8e3993bc2a075236784d89e6957fb5754d26cd8
   extra-dep: true
   subdirs:
     - 'accelerate-llvm'
@@ -28,7 +28,7 @@ packages:
 
 - location:
     git:    https://github.com/tmcdonell/cuda.git
-    commit: 5866f6d85bd530cf419e0aeec3ff4c92a9e7c509
+    commit: bfa5b024fbf10a312f58c5d46d766d6bd2d01e04
   extra-dep: true
 
 - location:
