@@ -11,24 +11,27 @@ sudo: false
 cache:
   directories:
     - $HOME/.stack
+    - $HOME/llvm
+    - .stack-work/downloaded
+    - .stack-work/install
 
 matrix:
   include:
     - env: GHC=7.8.4 CABAL=1.18 LLVM=3.4.2
       compiler: "GHC 7.8"
-      addons: { apt: { sources: [ hvr-ghc, ubuntu-toolchain-r-test ], packages: [ nvidia-cuda-toolkit, libstdc++6, libgmp-dev, cabal-install-1.18, happy-1.19.5, alex-3.1.7 ] }}
+      addons: { apt: { sources: [ hvr-ghc, ubuntu-toolchain-r-test ], packages: [ nvidia-cuda-toolkit, g++-4.8, libgmp-dev, libfftw3-dev, cabal-install-1.18, happy-1.19.5, alex-3.1.7 ] }}
 
     - env: GHC=7.10.3 CABAL=1.22 LLVM=3.5.2
       compiler: "GHC 7.10"
-      addons: { apt: { sources: [ hvr-ghc, ubuntu-toolchain-r-test ], packages: [ nvidia-cuda-toolkit, libstdc++6, libgmp-dev, cabal-install-1.22, happy-1.19.5, alex-3.1.7 ] }}
+      addons: { apt: { sources: [ hvr-ghc, ubuntu-toolchain-r-test ], packages: [ nvidia-cuda-toolkit, g++-4.8, libgmp-dev, libfftw3-dev, cabal-install-1.22, happy-1.19.5, alex-3.1.7 ] }}
 
     - env: GHC=8.0.1 CABAL=1.24 LLVM=3.6.2
       compiler: "GHC 8.0"
-      addons: { apt: { sources: [ hvr-ghc, ubuntu-toolchain-r-test ], packages: [ nvidia-cuda-toolkit, libstdc++6, libgmp-dev, cabal-install-1.24, happy-1.19.5, alex-3.1.7 ] }}
+      addons: { apt: { sources: [ hvr-ghc, ubuntu-toolchain-r-test ], packages: [ nvidia-cuda-toolkit, g++-4.8, libgmp-dev, libfftw3-dev, cabal-install-1.24, happy-1.19.5, alex-3.1.7 ] }}
 
     - env: GHC=head CABAL=head LLVM=3.8.0
       compiler: "GHC HEAD"
-      addons: { apt: { sources: [ hvr-ghc, ubuntu-toolchain-r-test ], packages: [ nvidia-cuda-toolkit, libstdc++6, ghc-head, cabal-install-head, happy-1.19.5, alex-3.1.7 ] }}
+      addons: { apt: { sources: [ hvr-ghc, ubuntu-toolchain-r-test ], packages: [ nvidia-cuda-toolkit, g++-4.8, ghc-head, libfftw3-dev, cabal-install-head, happy-1.19.5, alex-3.1.7 ] }}
 
   allow_failures:
     - env: GHC=head CABAL=head LLVM=3.8.0
@@ -39,7 +42,7 @@ before_install:
   - export PATH=/opt/cabal/$CABAL/bin:/opt/alex/3.1.7/bin:/opt/happy/1.19.5/bin:$HOME/.cabal/bin:$PATH
   - export UPGRADE_CABAL=1
   - source .travis/install-stack.sh
-  # - source .travis/install-llvm-trusty.sh
+  - source .travis/install-llvm-trusty.sh
 
 install:
   - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
@@ -57,11 +60,11 @@ install:
 script:
   - |
       if [ ${GHC} == head -o ! -e stack.yaml ]; then
-        cabal install
-        cabal haddock
+        travis_retry cabal install
+        travis_retry cabal haddock
       else
-        stack build --no-terminal --flag accelerate-fft:-cuda
-        stack build --no-terminal --haddock --no-haddock-deps
+        travis_retry stack build --no-terminal --flag accelerate-fft:-cuda
+        travis_retry stack build --no-terminal --haddock --no-haddock-deps
       fi
 
 after_success:
