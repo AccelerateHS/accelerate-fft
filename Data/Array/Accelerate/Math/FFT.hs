@@ -21,8 +21,11 @@
 -- Computation of a Discrete Fourier Transform using the Cooley-Tuckey
 -- algorithm. The time complexity is O(n log n) in the size of the input.
 --
--- This uses a naïve divide-and-conquer algorithm whose absolute performance is
--- appalling.
+-- The base (default) implementation uses a naïve divide-and-conquer algorithm
+-- whose absolute performance is appalling. It also requires that you know on
+-- the Haskell side the size of the data being transformed. Compiling with the
+-- foreign implementations (-fcuda, -fllvm-gpu, -fllvm-cpu) has neither of these
+-- limitations.
 --
 
 module Data.Array.Accelerate.Math.FFT (
@@ -92,7 +95,7 @@ fft1D' mode len arr
                   foreignAcc (PTX.fft1D mode) $
 #endif
 #ifdef ACCELERATE_CUDA_BACKEND
-                  foreignAcc (CUDA.fft mode (Z :. len)) $
+                  foreignAcc (CUDA.fft1D mode) $
 #endif
                   fft sign Z len
     in
@@ -139,7 +142,7 @@ fft2D' mode width height arr
                   foreignAcc (PTX.fft2D mode) $
 #endif
 #ifdef ACCELERATE_CUDA_BACKEND
-                  foreignAcc (CUDA.fft mode (Z :. height :. width)) $
+                  foreignAcc (CUDA.fft2D mode) $
 #endif
                   fft'
 
@@ -191,7 +194,7 @@ fft3D' mode width height depth arr
                   foreignAcc (PTX.fft3D mode) $
 #endif
 #ifdef ACCELERATE_CUDA_BACKEND
-                  foreignAcc (CUDA.fft mode (Z :. depth :. height :. width)) $
+                  foreignAcc (CUDA.fft3D mode) $
 #endif
                   fft'
 

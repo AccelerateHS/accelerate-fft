@@ -256,6 +256,7 @@ type instance DevicePtrs CFloat  = DevicePtr Float
 type instance DevicePtrs CDouble = DevicePtr Double
 
 
+-- Cache the FFT planning step for faster repeat evaluations.
 {-# NOINLINE fft_plans #-}
 fft_plans :: MVar [((FFT.Type, [Int]), FFT.Handle)]
 fft_plans = unsafePerformIO $ do
@@ -265,6 +266,7 @@ fft_plans = unsafePerformIO $ do
       $ mapM_ (\(_,p) -> FFT.destroy p)
   return mv
 
+-- Cache the functions which convert between SoA and AoS format.
 {-# NOINLINE ptx_twine_modules #-}
 ptx_twine_modules :: MVar [((Int, CUDA.Context), CUDA.Module)]
 ptx_twine_modules = unsafePerformIO $ do
