@@ -23,9 +23,11 @@
 --
 -- The base (default) implementation uses a naïve divide-and-conquer algorithm
 -- whose absolute performance is appalling. It also requires that you know on
--- the Haskell side the size of the data being transformed. Compiling with the
--- foreign implementations (-fcuda, -fllvm-gpu, -fllvm-cpu) has neither of these
--- limitations.
+-- the Haskell side the size of the data being transformed.
+--
+-- For performance, compile against the foreign library bindings (using any
+-- number of '-fcuda', '-fllvm-gpu', and '-fllvm-cpu' for the accelerate-cuda,
+-- accelerate-llvm-ptx, and accelerate-llvm-native backends respectively).
 --
 
 module Data.Array.Accelerate.Math.FFT (
@@ -75,16 +77,14 @@ fft1D :: FFTElt e
       -> Array DIM1 (Complex e)
       -> Acc (Array DIM1 (Complex e))
 fft1D mode vec
-  = let Z :. len = arrayShape vec
-    in
-    fft1D' mode len (use vec)
+  = fft1D' mode (arrayShape vec) (use vec)
 
 fft1D' :: forall e. FFTElt e
        => Mode
-       -> Int
+       -> DIM1
        -> Acc (Array DIM1 (Complex e))
        -> Acc (Array DIM1 (Complex e))
-fft1D' mode len arr
+fft1D' mode sh@(Z :. len) arr
   = let sign    = signOfMode mode :: e
         scale   = P.fromIntegral len
         go      =
@@ -102,7 +102,7 @@ fft1D' mode len arr
     if P.not (isPow2 len)
        then error $ unlines
               [ "Data.Array.Accelerate.FFT: fft1D"
-              , "  Array dimensions must be powers of two, but are: " P.++ showShape (Z:.len) ]
+              , "  Array dimensions must be powers of two, but are: " P.++ showShape sh ]
 
        else case mode of
                  Inverse -> A.map (/scale) (go arr)
@@ -120,18 +120,15 @@ fft2D :: FFTElt e
       -> Array DIM2 (Complex e)
       -> Acc (Array DIM2 (Complex e))
 fft2D mode arr
-  = let Z :. height :. width = arrayShape arr
-    in
-    fft2D' mode width height (use arr)
+  = fft2D' mode (arrayShape arr) (use arr)
 
 
 fft2D' :: forall e. FFTElt e
        => Mode
-       -> Int   -- ^ width
-       -> Int   -- ^ height
+       -> DIM2
        -> Acc (Array DIM2 (Complex e))
        -> Acc (Array DIM2 (Complex e))
-fft2D' mode width height arr
+fft2D' mode sh@(Z :. height :. width) arr
   = let sign    = signOfMode mode :: e
         scale   = P.fromIntegral (width * height)
         go      =
@@ -153,7 +150,7 @@ fft2D' mode width height arr
     if P.not (isPow2 width && isPow2 height)
        then error $ unlines
               [ "Data.Array.Accelerate.FFT: fft2D"
-              , "  Array dimensions must be powers of two, but are: " P.++ showShape (Z:.height:.width) ]
+              , "  Array dimensions must be powers of two, but are: " P.++ showShape sh ]
 
        else case mode of
                  Inverse -> A.map (/scale) (go arr)
@@ -171,19 +168,15 @@ fft3D :: FFTElt e
       -> Array DIM3 (Complex e)
       -> Acc (Array DIM3 (Complex e))
 fft3D mode arr
-  = let Z :. depth :. height :. width = arrayShape arr
-    in
-    fft3D' mode width height depth (use arr)
+  = fft3D' mode (arrayShape arr) (use arr)
 
 
 fft3D' :: forall e. FFTElt e
        => Mode
-       -> Int   -- ^ width
-       -> Int   -- ^ height
-       -> Int   -- ^ depth
+       -> DIM3
        -> Acc (Array DIM3 (Complex e))
        -> Acc (Array DIM3 (Complex e))
-fft3D' mode width height depth arr
+fft3D' mode sh@(Z :. depth :. height :. width) arr
   = let sign    = signOfMode mode :: e
         scale   = P.fromIntegral (width * height)
         go      =
@@ -206,7 +199,7 @@ fft3D' mode width height depth arr
     if P.not (isPow2 width && isPow2 height && isPow2 depth)
        then error $ unlines
               [ "Data.Array.Accelerate.FFT: fft3D"
-              , "  Array dimensions must be powers of two, but are: " P.++ showShape (Z:.depth:.height:.width) ]
+              , "  Array dimensions must be powers of two, but are: " P.++ showShape sh ]
 
        else case mode of
                  Inverse -> A.map (/scale) (go arr)
