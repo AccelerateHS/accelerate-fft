@@ -23,11 +23,13 @@
 --
 -- The base (default) implementation uses a naïve divide-and-conquer algorithm
 -- whose absolute performance is appalling. It also requires that you know on
--- the Haskell side the size of the data being transformed.
+-- the Haskell side the size of the data being transformed, and that this is
+-- a power-of-two in each dimension.
 --
 -- For performance, compile against the foreign library bindings (using any
 -- number of '-fcuda', '-fllvm-gpu', and '-fllvm-cpu' for the accelerate-cuda,
--- accelerate-llvm-ptx, and accelerate-llvm-native backends respectively).
+-- accelerate-llvm-ptx, and accelerate-llvm-native backends respectively), which
+-- have none of the above restrictions.
 --
 
 module Data.Array.Accelerate.Math.FFT (
@@ -41,11 +43,9 @@ module Data.Array.Accelerate.Math.FFT (
 
 ) where
 
-import Prelude                                                      as P
 import Data.Array.Accelerate                                        as A
-import Data.Array.Accelerate.Array.Sugar                            ( showShape )
+import Data.Array.Accelerate.Array.Sugar                            ( showShape, shapeToList )
 import Data.Array.Accelerate.Data.Complex
-
 import Data.Array.Accelerate.Math.FFT.Mode
 
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
@@ -59,6 +59,8 @@ import qualified Data.Array.Accelerate.Math.FFT.CUDA                as CUDA
 #endif
 
 import Data.Bits
+import Text.Printf
+import Prelude                                                      as P
 
 
 -- The type of supported FFT elements; namely 'Float' and 'Double'.
@@ -68,9 +70,11 @@ type FFTElt e = (P.Num e, A.RealFloat e, A.FromIntegral Int e, A.IsFloating e)
 
 -- Vector Transform
 -- ----------------
+
+-- | Discrete Fourier Transform of a vector.
 --
--- Discrete Fourier Transform of a vector. Array dimensions must be powers of
--- two else error.
+-- The default implementation requires the array dimension to be a power of two
+-- (else error).
 --
 fft1D :: FFTElt e
       => Mode
@@ -79,12 +83,19 @@ fft1D :: FFTElt e
 fft1D mode vec
   = fft1D' mode (arrayShape vec) (use vec)
 
+
+-- | Discrete Fourier Transform of a vector.
+--
+-- The default implementation requires the array dimension to be a power of two.
+-- The FFI-backed implementations ignore the Haskell-side size parameter (second
+-- argument).
+--
 fft1D' :: forall e. FFTElt e
        => Mode
        -> DIM1
        -> Acc (Array DIM1 (Complex e))
        -> Acc (Array DIM1 (Complex e))
-fft1D' mode sh@(Z :. len) arr
+fft1D' mode (Z :. len) arr
   = let sign    = signOfMode mode :: e
         scale   = P.fromIntegral len
         go      =
@@ -99,21 +110,18 @@ fft1D' mode sh@(Z :. len) arr
 #endif
                   fft sign Z len
     in
-    if P.not (isPow2 len)
-       then error $ unlines
-              [ "Data.Array.Accelerate.FFT: fft1D"
-              , "  Array dimensions must be powers of two, but are: " P.++ showShape sh ]
-
-       else case mode of
-                 Inverse -> A.map (/scale) (go arr)
-                 _       -> go arr
+    case mode of
+      Inverse -> A.map (/scale) (go arr)
+      _       -> go arr
 
 
 -- Matrix Transform
 -- ----------------
+
+-- | Discrete Fourier Transform of a matrix.
 --
--- Discrete Fourier Transform of a matrix. Array dimensions must be powers of
--- two else error.
+-- The default implementation requires the array dimensions to be powers of two
+-- (else error).
 --
 fft2D :: FFTElt e
       => Mode
@@ -123,12 +131,18 @@ fft2D mode arr
   = fft2D' mode (arrayShape arr) (use arr)
 
 
+-- | Discrete Fourier Transform of a matrix.
+--
+-- The default implementation requires the array dimensions to be powers of two.
+-- The FFI-backed implementations ignore the Haskell-side size parameter (second
+-- argument).
+--
 fft2D' :: forall e. FFTElt e
        => Mode
        -> DIM2
        -> Acc (Array DIM2 (Complex e))
        -> Acc (Array DIM2 (Complex e))
-fft2D' mode sh@(Z :. height :. width) arr
+fft2D' mode (Z :. height :. width) arr
   = let sign    = signOfMode mode :: e
         scale   = P.fromIntegral (width * height)
         go      =
@@ -147,21 +161,18 @@ fft2D' mode sh@(Z :. height :. width) arr
               >-> A.transpose . fft sign (Z:.height) width
                 $ a
     in
-    if P.not (isPow2 width && isPow2 height)
-       then error $ unlines
-              [ "Data.Array.Accelerate.FFT: fft2D"
-              , "  Array dimensions must be powers of two, but are: " P.++ showShape sh ]
-
-       else case mode of
-                 Inverse -> A.map (/scale) (go arr)
-                 _       -> go arr
+    case mode of
+      Inverse -> A.map (/scale) (go arr)
+      _       -> go arr
 
 
 -- Cube Transform
 -- --------------
+
+-- | Discrete Fourier Transform of a 3D array.
 --
--- Discrete Fourier Transform of a 3D array. Array dimensions must be power of
--- two else error.
+-- The default implementation requires the array dimensions to be powers of two
+-- (else error).
 --
 fft3D :: FFTElt e
       => Mode
@@ -171,12 +182,18 @@ fft3D mode arr
   = fft3D' mode (arrayShape arr) (use arr)
 
 
+-- | Discrete Fourier Transform of a 3D array.
+--
+-- The default implementation requires the array dimensions to be powers of two.
+-- The FFI-backed implementations ignore the Haskell-side size parameter (second
+-- argument).
+--
 fft3D' :: forall e. FFTElt e
        => Mode
        -> DIM3
        -> Acc (Array DIM3 (Complex e))
        -> Acc (Array DIM3 (Complex e))
-fft3D' mode sh@(Z :. depth :. height :. width) arr
+fft3D' mode (Z :. depth :. height :. width) arr
   = let sign    = signOfMode mode :: e
         scale   = P.fromIntegral (width * height)
         go      =
@@ -196,15 +213,9 @@ fft3D' mode sh@(Z :. depth :. height :. width) arr
               >-> rotate3D . fft sign (Z:.depth :.height) width
                 $ a
     in
-    if P.not (isPow2 width && isPow2 height && isPow2 depth)
-       then error $ unlines
-              [ "Data.Array.Accelerate.FFT: fft3D"
-              , "  Array dimensions must be powers of two, but are: " P.++ showShape sh ]
-
-       else case mode of
-                 Inverse -> A.map (/scale) (go arr)
-                 _       -> go arr
-
+    case mode of
+      Inverse -> A.map (/scale) (go arr)
+      _       -> go arr
 
 
 rotate3D :: Elt e => Acc (Array DIM3 e) -> Acc (Array DIM3 e)
@@ -228,7 +239,12 @@ fft :: forall sh e. (Slice sh, Shape sh, A.RealFloat e, A.FromIntegral Int e)
     -> Int
     -> Acc (Array (sh:.Int) (Complex e))
     -> Acc (Array (sh:.Int) (Complex e))
-fft sign sh sz arr = go sz 0 1
+fft sign sh sz arr
+  | P.any (P.not . isPow2) (shapeToList (sh:.sz))
+  = error $ printf "fft: array dimensions must be powers-of-two, but are: %s" (showShape (sh:.sz))
+  --
+  | otherwise
+  = go sz 0 1
   where
     go :: Int -> Int -> Int -> Acc (Array (sh:.Int) (Complex e))
     go len offset stride
@@ -264,7 +280,8 @@ fft sign sh sz arr = go sz 0 1
           lift ( cos k :+ A.constant sign * sin k )
 
 
--- Append two arrays. Doesn't do proper bounds checking or intersection...
+-- Append two arrays. This is a specialised version of (A.++) which does not do
+-- bounds checking or intersection.
 --
 append
     :: forall sh e. (Slice sh, Shape sh, Elt e)
