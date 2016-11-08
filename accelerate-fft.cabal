@@ -1,5 +1,5 @@
 Name:                   accelerate-fft
-Version:                2.0.0.0
+Version:                1.0.0.0
 Cabal-version:          >= 1.6
 Tested-with:            GHC >= 7.8
 Build-type:             Simple
@@ -50,7 +50,7 @@ Flag llvm-cpu
 Library
   build-depends:
         base                    >= 4.7
-      , accelerate              == 2.0.*
+      , accelerate              == 1.0.*
       , bytestring              >= 0.9
 
   exposed-modules:
@@ -68,7 +68,7 @@ Library
   if flag(cuda)
     cpp-options:        -DACCELERATE_CUDA_BACKEND
     build-depends:
-        accelerate-cuda         == 2.0.*
+        accelerate-cuda         == 1.0.*
       , cuda                    >= 0.5
       , cufft                   >= 0.1.2
       , file-embed              >= 0.0.10
@@ -79,8 +79,8 @@ Library
   if flag(llvm-cpu)
     cpp-options:        -DACCELERATE_LLVM_NATIVE_BACKEND
     build-depends:
-        accelerate-llvm         == 2.0.*
-      , accelerate-llvm-native  == 2.0.*
+        accelerate-llvm         == 1.0.*
+      , accelerate-llvm-native  == 1.0.*
       , carray                  >= 0.1.5
       , fft                     >= 0.1.8
       , storable-complex        >= 0.2
@@ -91,8 +91,8 @@ Library
   if flag(llvm-gpu)
     cpp-options:        -DACCELERATE_LLVM_PTX_BACKEND
     build-depends:
-        accelerate-llvm         == 2.0.*
-      , accelerate-llvm-ptx     == 2.0.*
+        accelerate-llvm         == 1.0.*
+      , accelerate-llvm-ptx     == 1.0.*
       , cuda                    >= 0.5
       , cufft                   >= 0.1.2
       , file-embed              >= 0.0.10

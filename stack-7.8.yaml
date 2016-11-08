@@ -9,17 +9,17 @@ packages:
 # extra-deps:
 - location:
     git:    https://github.com/AccelerateHS/accelerate.git
-    commit: 6ee059a917ae925ef0c22467f7b478c4a9fb21a1
+    commit: 362f7b80839dad39972f716f44e8c5cd56bd3c87
   extra-dep: true
 
 - location:
     git:    https://github.com/AccelerateHS/accelerate-cuda.git
-    commit: 7500ac64a0e3067263f294d69dd713d5cdd793b8
+    commit: 3ff507ce7e76312187a18ccd78d25679620c9d59
   extra-dep: true
 
 - location:
     git:    https://github.com/AccelerateHS/accelerate-llvm.git
-    commit: 75b191362a917674e00e1bcd08dfc7c49da4ea23
+    commit: 932e4ff0cb7d77fccd6d44580646cec9fb8d0083
   extra-dep: true
   subdirs:
     - 'accelerate-llvm'
@@ -27,13 +27,8 @@ packages:
     - 'accelerate-llvm-ptx'
 
 - location:
-    git:    https://github.com/tmcdonell/cuda.git
-    commit: bfa5b024fbf10a312f58c5d46d766d6bd2d01e04
-  extra-dep: true
-
-- location:
     git:    https://github.com/robeverest/cufft.git
-    commit: 3a793a1dfdc205867d38d90303356832a11c0718
+    commit: ca8183acb639c43715c6581af82ee246cee6a46f
   extra-dep: true
 
 extra-deps:
@@ -41,12 +36,13 @@ extra-deps:
 - 'base-orphans-0.4.4'
 - 'carray-0.1.6.5'
 - 'chaselev-deque-0.5.0.5'
+- 'cuda-0.7.5.1'
 - 'fft-0.1.8.4'
 - 'file-embed-0.0.10'
 - 'ix-shapable-0.1.0'
 - 'libffi-0.1'
-- 'llvm-general-3.4.6.0'
-- 'llvm-general-pure-3.4.5.4'
+- 'llvm-general-3.5.1.2'
+- 'llvm-general-pure-3.5.1.0'
 - 'mtl-2.2.1'
 - 'SafeSemaphore-0.10.1'
 - 'transformers-0.4.3.0'
@@ -66,8 +62,8 @@ flags:
     debug: false
   accelerate-fft:
     cuda: true
-    llvm-cpu: false
-    llvm-gpu: false
+    llvm-cpu: true
+    llvm-gpu: true
 
 # Extra package databases containing global packages
 extra-package-dbs: []
