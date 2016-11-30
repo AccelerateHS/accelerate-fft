@@ -38,7 +38,7 @@ Flag cuda
   Description:          Use CUFFT-based implementation in the CUDA backend
   Default:              False
 
-Flag llvm-gpu
+Flag llvm-ptx
   Description:          Use CUFFT-based implementation in the LLVM.PTX backend
   Default:              False
 
@@ -68,7 +68,7 @@ Library
   if flag(cuda)
     cpp-options:        -DACCELERATE_CUDA_BACKEND
     build-depends:
-        accelerate-cuda         == 1.0.*
+        accelerate-cuda         >= 0.16
       , cuda                    >= 0.5
       , cufft                   >= 0.1.2
       , file-embed              >= 0.0.10
@@ -88,7 +88,7 @@ Library
     other-modules:
       Data.Array.Accelerate.Math.FFT.LLVM.Native
 
-  if flag(llvm-gpu)
+  if flag(llvm-ptx)
     cpp-options:        -DACCELERATE_LLVM_PTX_BACKEND
     build-depends:
         accelerate-llvm         == 1.0.*

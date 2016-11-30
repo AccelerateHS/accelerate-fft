@@ -63,7 +63,7 @@ flags:
   accelerate-fft:
     cuda: true
     llvm-cpu: false   # https://github.com/cartazio/storable-complex/pull/1
-    llvm-gpu: false   # https://github.com/cartazio/storable-complex/pull/1
+    llvm-ptx: false   # https://github.com/cartazio/storable-complex/pull/1
 
 # Extra package databases containing global packages
 extra-package-dbs: []

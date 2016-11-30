@@ -61,7 +61,7 @@ flags:
   accelerate-fft:
     cuda: true
     llvm-cpu: true
-    llvm-gpu: true
+    llvm-ptx: true
 
 # Extra package databases containing global packages
 extra-package-dbs: []
