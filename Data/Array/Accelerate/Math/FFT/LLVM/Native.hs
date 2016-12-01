@@ -61,7 +61,7 @@ fft1D mode
       TypeCFloat{}  -> liftIO . liftAtoC go
       TypeCDouble{} -> liftIO . liftAtoC go
   where
-    go :: (FFTWReal r, ArrayPtrs e ~ Ptr r) => CArray Int (Complex r) -> CArray Int (Complex r)
+    go :: FFTWReal r => CArray Int (Complex r) -> CArray Int (Complex r)
     go = FFT.dftGU (signOf mode) flags [0]
 
 
@@ -76,7 +76,7 @@ fft2D mode
       TypeCFloat{}  -> liftIO . liftAtoC go
       TypeCDouble{} -> liftIO . liftAtoC go
   where
-    go :: (FFTWReal r, ArrayPtrs e ~ Ptr r) => CArray (Int,Int) (Complex r) -> CArray (Int,Int) (Complex r)
+    go :: FFTWReal r => CArray (Int,Int) (Complex r) -> CArray (Int,Int) (Complex r)
     go = FFT.dftGU (signOf mode) flags [0,1]
 
 
@@ -91,7 +91,7 @@ fft3D mode
       TypeCFloat{}  -> liftIO . liftAtoC go
       TypeCDouble{} -> liftIO . liftAtoC go
   where
-    go :: (FFTWReal r, ArrayPtrs e ~ Ptr r) => CArray (Int,Int,Int) (Complex r) -> CArray (Int,Int,Int) (Complex r)
+    go :: FFTWReal r => CArray (Int,Int,Int) (Complex r) -> CArray (Int,Int,Int) (Complex r)
     go = FFT.dftGU (signOf mode) flags [0,1,2]
 
 
