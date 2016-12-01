@@ -248,7 +248,7 @@ fft sign sh sz arr
   where
     go :: Int -> Int -> Int -> Acc (Array (sh:.Int) (Complex e))
     go len offset stride
-      | len == 2
+      | len P.== 2
       = A.generate (constant (sh :. len)) swivel
 
       | otherwise
@@ -264,8 +264,8 @@ fft sign sh sz arr
         swivel ix =
           let sh' :. sz' = unlift ix :: Exp sh :. Exp Int
           in
-          sz' ==* 0 ? ( (arr ! lift (sh' :. offset')) + (arr ! lift (sh' :. offset' + stride'))
-          {-  ==* 1-} , (arr ! lift (sh' :. offset')) - (arr ! lift (sh' :. offset' + stride')) )
+          sz' A.== 0 ? ( (arr ! lift (sh' :. offset')) + (arr ! lift (sh' :. offset' + stride'))
+          {-  A.== 1-} , (arr ! lift (sh' :. offset')) - (arr ! lift (sh' :. offset' + stride')) )
 
         combine evens odds =
           let odds' = A.generate (A.shape odds) (\ix -> twiddle len' (indexHead ix) * odds!ix)
@@ -294,9 +294,9 @@ append xs ys
     in
     generate (lift (sh :. n+m))
              (\ix -> let sz :. i = unlift ix :: Exp sh :. Exp Int
-                     in  i A.<* n ? (xs ! lift (sz:.i), ys ! lift (sz:.i-n) ))
+                     in  i A.< n ? (xs ! lift (sz:.i), ys ! lift (sz:.i-n) ))
 
 
 isPow2 :: Int -> Bool
-isPow2 x = x .&. (x-1) == 0
+isPow2 x = x .&. (x-1) P.== 0
 

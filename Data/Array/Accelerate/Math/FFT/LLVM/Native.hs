@@ -48,6 +48,7 @@ import Foreign.Storable.Complex                                     ()
 
 import Data.Bits
 import Text.Printf
+import Prelude                                                      as P
 
 
 fft1D :: forall e. (Elt e, IsFloating e)
@@ -135,8 +136,8 @@ a2c arr
       let
           -- TLM: Should we execute this in parallel using the worker threads of
           -- the current target? (Native)
-          go !i | i >= n = return ()
-          go !i          = do
+          go !i | i P.>= n = return ()
+          go !i            = do
             re <- peekElemOff p_re i
             im <- peekElemOff p_im i
             pokeElemOff p_cs i (re :+ im)
@@ -164,8 +165,8 @@ c2a carr
         let
             -- TLM: Should we execute this in parallel using the worker threads
             -- of the current target? (Native)
-            go !i | i >= n = return ()
-            go !i          = do
+            go !i | i P.>= n = return ()
+            go !i            = do
               re :+ im <- peekElemOff p_cs i
               pokeElemOff p_re i re
               pokeElemOff p_im i im

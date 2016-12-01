@@ -9,7 +9,7 @@ packages:
 # extra-deps:
 - location:
     git:    https://github.com/AccelerateHS/accelerate.git
-    commit: f83a4fcd672f59b834425fe67c41d6a46edbcde5
+    commit: ed02d0ab0fc1d4430193efe12c92d9d77239e68c
   extra-dep: true
 
 - location:
@@ -19,7 +19,7 @@ packages:
 
 - location:
     git:    https://github.com/AccelerateHS/accelerate-llvm.git
-    commit: bb05ef082f99456b0719124d9f7d10c2199a2838
+    commit: 708389da8fbf7048a8d68b3eb6eb500aa43e7ea1
   extra-dep: true
   subdirs:
     - 'accelerate-llvm'

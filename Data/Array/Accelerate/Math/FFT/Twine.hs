@@ -43,7 +43,7 @@ interleave arr = generate sh swizzle
       let i     = indexHead ix
           (j,k) = i `quotRem` 2
       in
-      k ==* 0 ? ( reals A.!! j, imags A.!! j )
+      k A.== 0 ? ( reals A.!! j, imags A.!! j )
 
 
 -- Deinterleave a vector into a complex array. Requires the array to have an
