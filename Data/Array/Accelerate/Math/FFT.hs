@@ -219,13 +219,17 @@ fft3D' mode (Z :. depth :. height :. width) arr
 
 
 rotate3D :: Elt e => Acc (Array DIM3 e) -> Acc (Array DIM3 e)
-rotate3D arr
-  = backpermute (swap (A.shape arr)) swap arr
+rotate3D arr = backpermute sh rot arr
   where
-    swap :: Exp DIM3 -> Exp DIM3
-    swap ix =
-      let Z :. m :. k :. l = unlift ix  :: Z :. Exp Int :. Exp Int :. Exp Int
-      in  lift $ Z :. k :. l :. m
+    sh :: Exp DIM3
+    sh =
+      let Z :. z :. y :. x = unlift (shape arr) :: Z :. Exp Int :. Exp Int :. Exp Int
+      in  index3 y x z
+    --
+    rot :: Exp DIM3 -> Exp DIM3
+    rot ix =
+      let Z :. z :. y :. x = unlift ix          :: Z :. Exp Int :. Exp Int :. Exp Int
+      in  index3 x z y
 
 
 -- Rank-generalised Cooley-Tuckey DFT
