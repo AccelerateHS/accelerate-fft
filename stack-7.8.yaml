@@ -9,7 +9,7 @@ packages:
 # extra-deps:
 - location:
     git:    https://github.com/AccelerateHS/accelerate.git
-    commit: ed02d0ab0fc1d4430193efe12c92d9d77239e68c
+    commit: 1108decb6ec67f604fd9f8a3e4202ec7ead43bfb
   extra-dep: true
 
 - location:
@@ -19,7 +19,7 @@ packages:
 
 - location:
     git:    https://github.com/AccelerateHS/accelerate-llvm.git
-    commit: 708389da8fbf7048a8d68b3eb6eb500aa43e7ea1
+    commit: e0597a1cc010f88408ca867bfb54d4a13d9e4a80
   extra-dep: true
   subdirs:
     - 'accelerate-llvm'
@@ -31,7 +31,7 @@ extra-deps:
 - 'base-orphans-0.4.4'
 - 'carray-0.1.6.5'
 - 'chaselev-deque-0.5.0.5'
-- 'cuda-0.7.5.1'
+- 'cuda-0.7.5.2'
 - 'cufft-0.7.5.0'
 - 'fft-0.1.8.4'
 - 'file-embed-0.0.10'
