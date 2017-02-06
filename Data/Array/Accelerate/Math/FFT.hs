@@ -157,8 +157,8 @@ fft2D' mode (Z :. height :. width) arr
 #endif
                   fft'
 
-        fft' a  = A.transpose . fft sign (Z:.width)  height
-              >-> A.transpose . fft sign (Z:.height) width
+        fft' a  = A.transpose . fft sign (Z:.height) width
+              >-> A.transpose . fft sign (Z:.width)  height
                 $ a
     in
     case mode of
@@ -195,7 +195,7 @@ fft3D' :: forall e. FFTElt e
        -> Acc (Array DIM3 (Complex e))
 fft3D' mode (Z :. depth :. height :. width) arr
   = let sign    = signOfMode mode :: e
-        scale   = P.fromIntegral (width * height)
+        scale   = P.fromIntegral (width * height * depth)
         go      =
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
                   foreignAcc (Native.fft3D mode) $
@@ -208,9 +208,9 @@ fft3D' mode (Z :. depth :. height :. width) arr
 #endif
                   fft'
 
-        fft' a  = rotate3D . fft sign (Z:.width :.depth)  height
+        fft' a  = rotate3D . fft sign (Z:.depth :.height) width
               >-> rotate3D . fft sign (Z:.height:.width)  depth
-              >-> rotate3D . fft sign (Z:.depth :.height) width
+              >-> rotate3D . fft sign (Z:.width :.depth)  height
                 $ a
     in
     case mode of
