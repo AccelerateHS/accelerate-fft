@@ -302,5 +302,7 @@ append xs ys
 
 
 isPow2 :: Int -> Bool
+isPow2 0 = True
+isPow2 1 = False
 isPow2 x = x .&. (x-1) P.== 0
 
