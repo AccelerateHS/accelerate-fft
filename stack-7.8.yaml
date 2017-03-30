@@ -9,36 +9,27 @@ packages:
 # extra-deps:
 - location:
     git:    https://github.com/AccelerateHS/accelerate.git
-    commit: 24fb4dd0802df4d6834ae3e731fe469494e485e9
+    commit: 22d49629ade9b9b8e93985362323b1259155df37
   extra-dep: true
 
 - location:
     git:    https://github.com/AccelerateHS/accelerate-cuda.git
-    commit: cd8d31c24717ab1041057d1979113689ac79fead
+    commit: 0f4d0b9781af099dad8739b57f4da55466293597
   extra-dep: true
 
 - location:
     git:    https://github.com/AccelerateHS/accelerate-llvm.git
-    commit: c5ba27aee1f7bccae3f5ea2c20e452886ae5d7b0
+    commit: 2bb0fb1c7608b4b37269a0a631dc2289bff2f560
   extra-dep: true
   subdirs:
     - 'accelerate-llvm'
     - 'accelerate-llvm-native'
     - 'accelerate-llvm-ptx'
 
-- location:
-    git:    https://github.com/tmcdonell/llvm-general.git
-    commit: 8971e275fe56dfd0090ac777e38e6dd641a0306a # 3.5
-    # commit: f80beba704a6b168326d442197b43e71a1ab730d # 3.8
-    # commit: 69863022efd2691e8198da0c24b7e49b8d5ebd4c # 3.9
-  extra-dep: true
-  subdirs:
-    - 'llvm-general'
-    - 'llvm-general-pure'
-
 extra-deps:
 - 'atomic-primops-0.8.0.2'
 - 'base-orphans-0.4.4'
+- 'Cabal-1.24.2.0'
 - 'carray-0.1.6.5'
 - 'chaselev-deque-0.5.0.5'
 - 'cuda-0.7.5.2'
@@ -47,18 +38,22 @@ extra-deps:
 - 'file-embed-0.0.10'
 - 'ix-shapable-0.1.0'
 - 'libffi-0.1'
-# - 'llvm-general-3.5.1.2'
-# - 'llvm-general-pure-3.5.1.0'
+- 'llvm-hs-4.0.0.0'
+- 'llvm-hs-pure-4.0.0.0'
 - 'mtl-2.2.1'
 - 'SafeSemaphore-0.10.1'
+- 'semigroups-0.18.1'
 - 'transformers-0.4.3.0'
 - 'transformers-compat-0.4.0.4'
 - 'unique-0'
 
 # Override default flag values for local packages and extra-deps
 flags:
-  llvm-general:
+  llvm-hs:
     shared-llvm: true
+    semigroups: true
+  llvm-hs-pure:
+    semigroups: true
   accelerate:
     unsafe-checks: false
     bounds-checks: false
