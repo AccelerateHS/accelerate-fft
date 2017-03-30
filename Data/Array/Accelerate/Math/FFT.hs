@@ -10,11 +10,11 @@
 {-# LANGUAGE ViewPatterns             #-}
 -- |
 -- Module      : Data.Array.Accelerate.Math.FFT
--- Copyright   : [2012..2013] Manuel M T Chakravarty, Gabriele Keller, Trevor L. McDonell
---               [2013..2014] Robert Clifton-Everest
+-- Copyright   : [2012..2017] Manuel M T Chakravarty, Gabriele Keller, Trevor L. McDonell
+--               [2013..2017] Robert Clifton-Everest
 -- License     : BSD3
 --
--- Maintainer  : Manuel M T Chakravarty <chak@cse.unsw.edu.au>
+-- Maintainer  : Trevor L. McDonell <tmcdonell@cse.unsw.edu.au>
 -- Stability   : experimental
 -- Portability : non-portable (GHC extensions)
 --
