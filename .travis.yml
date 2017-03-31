@@ -5,41 +5,87 @@
 # Caches the 'stack' build directory to speed subsequent compilations.
 #
 language: generic
-dist: trusty
-sudo: false
+dist: precise
 
 cache:
   directories:
     - $HOME/.stack
+    - $HOME/llvm
+    - .stack-work/install
+
+addons:
+  apt:
+    sources: &apt_sources
+      - hvr-ghc
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise
+      # - llvm-toolchain-precise-3.5
+      # - llvm-toolchain-precise-3.6
+      # - llvm-toolchain-precise-3.7
+      # - llvm-toolchain-precise-3.8
+      # - llvm-toolchain-precise-3.9
+      - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-4.0 main'
+        key_url: 'http://apt.llvm.org/llvm-snapshot.gpg.key'
+
+    packages: &apt_packages
+      - nvidia-cuda-toolkit
+      - g++-4.8
+      - libgmp-dev
+      - libfftw3-dev
+      - happy-1.19.5
+      - alex-3.1.4
+      - llvm-4.0-dev
 
 matrix:
   include:
-    - env: GHC=7.8.4 CABAL=1.18 LLVM=3.4.2
+    - env: GHC=7.8.4 CABAL=1.18 LLVM=4.0.0
       compiler: "GHC 7.8"
-      addons: { apt: { sources: [ hvr-ghc, ubuntu-toolchain-r-test ], packages: [ nvidia-cuda-toolkit, libstdc++6, libgmp-dev, cabal-install-1.18, happy-1.19.5, alex-3.1.7 ] }}
+      addons:
+        apt:
+          sources: *apt_sources
+          packages:
+            - *apt_packages
+            - cabal-install-1.18
 
-    - env: GHC=7.10.3 CABAL=1.22 LLVM=3.5.2
+    - env: GHC=7.10.3 CABAL=1.22 LLVM=4.0.0
       compiler: "GHC 7.10"
-      addons: { apt: { sources: [ hvr-ghc, ubuntu-toolchain-r-test ], packages: [ nvidia-cuda-toolkit, libstdc++6, libgmp-dev, cabal-install-1.22, happy-1.19.5, alex-3.1.7 ] }}
+      addons:
+        apt:
+          sources: *apt_sources
+          packages:
+            - *apt_packages
+            - cabal-install-1.22
 
-    - env: GHC=8.0.1 CABAL=1.24 LLVM=3.6.2
+    - env: GHC=8.0.2 CABAL=1.24 LLVM=4.0.0
       compiler: "GHC 8.0"
-      addons: { apt: { sources: [ hvr-ghc, ubuntu-toolchain-r-test ], packages: [ nvidia-cuda-toolkit, libstdc++6, libgmp-dev, cabal-install-1.24, happy-1.19.5, alex-3.1.7 ] }}
+      addons:
+        apt:
+          sources: *apt_sources
+          packages:
+            - *apt_packages
+            - cabal-install-1.24
 
-    - env: GHC=head CABAL=head LLVM=3.8.0
-      compiler: "GHC HEAD"
-      addons: { apt: { sources: [ hvr-ghc, ubuntu-toolchain-r-test ], packages: [ nvidia-cuda-toolkit, libstdc++6, ghc-head, cabal-install-head, happy-1.19.5, alex-3.1.7 ] }}
+    # - env: GHC=head CABAL=head LLVM=3.9.0
+    #   compiler: "GHC HEAD"
+    #   addons: { apt: { sources: [ *apt_sources ], packages: [ *apt_packages, llvm-3.9-dev, ghc-head, cabal-install-head ] }}
 
-  allow_failures:
-    - env: GHC=head CABAL=head LLVM=3.8.0
+  # allow_failures:
+  #   - env: GHC=head CABAL=head LLVM=3.9.0
 
   fast_finish: true
 
 before_install:
-  - export PATH=/opt/cabal/$CABAL/bin:/opt/alex/3.1.7/bin:/opt/happy/1.19.5/bin:$HOME/.cabal/bin:$PATH
-  - export UPGRADE_CABAL=1
+  - export PATH=/opt/cabal/$CABAL/bin:/opt/alex/3.1.4/bin:/opt/happy/1.19.5/bin:$HOME/.cabal/bin:$PATH
+  # - |
+  #     case ${GHC} in
+  #       7.8.*) export UPGRADE_CABAL=1 ;;
+  #     esac
+  # - |
+  #     case ${LLVM} in
+  #       3.5.*) source .travis/install-llvm-trusty.sh ;;
+  #     esac
   - source .travis/install-stack.sh
-  # - source .travis/install-llvm-trusty.sh
+  - source .travis/update-ghc-settings.sh
 
 install:
   - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
@@ -57,11 +103,11 @@ install:
 script:
   - |
       if [ ${GHC} == head -o ! -e stack.yaml ]; then
-        cabal install
-        cabal haddock
+        travis_retry cabal install
+        travis_retry cabal haddock
       else
-        stack build --no-terminal --flag accelerate-fft:-cuda
-        stack build --no-terminal --haddock --no-haddock-deps
+        travis_retry stack build --no-terminal --flag accelerate-fft:-cuda --flag accelerate-fft:-llvm-ptx --flag accelerate-fft:-llvm-cpu
+        travis_retry stack build --no-terminal --haddock --no-haddock-deps
       fi
 
 after_success:

@@ -3,11 +3,11 @@
 {-# LANGUAGE TypeOperators    #-}
 -- |
 -- Module      : Data.Array.Accelerate.Math.DFT.Centre
--- Copyright   : [2012..2014] Manuel M T Chakravarty, Gabriele Keller, Trevor L. McDonell
---               [2013..2014] Robert Clifton-Everest
+-- Copyright   : [2012..2017] Manuel M T Chakravarty, Gabriele Keller, Trevor L. McDonell
+--               [2013..2017] Robert Clifton-Everest
 -- License     : BSD3
 --
--- Maintainer  : Manuel M T Chakravarty <chak@cse.unsw.edu.au>
+-- Maintainer  : Trevor L. McDonell <tmcdonell@cse.unsw.edu.au>
 -- Stability   : experimental
 -- Portability : non-portable (GHC extensions)
 --
@@ -70,7 +70,7 @@ shift1D arr
   where
     p ix
       = let Z:.x = unlift ix :: Z :. Exp Int
-        in index1 (x A.<* mw ? (x + mw, x - mw))
+        in index1 (x A.< mw ? (x + mw, x - mw))
     Z:.w    = unlift (A.shape arr)
     mw      = w `div` 2
 
@@ -83,8 +83,8 @@ shift2D arr
   where
     p ix
       = let Z:.y:.x = unlift ix :: Z :. Exp Int :. Exp Int
-        in index2 (y A.<* mh ? (y + mh, y - mh))
-                  (x A.<* mw ? (x + mw, x - mw))
+        in index2 (y A.< mh ? (y + mh, y - mh))
+                  (x A.< mw ? (x + mw, x - mw))
     Z:.h:.w = unlift (A.shape arr)
     (mh,mw) = (h `div` 2, w `div` 2)
 
@@ -97,9 +97,9 @@ shift3D arr
   where
     p ix
       = let Z:.z:.y:.x = unlift ix :: Z :. Exp Int :. Exp Int :. Exp Int
-        in index3 (z A.<* md ? (z + md, z - md))
-                  (y A.<* mh ? (y + mh, y - mh))
-                  (x A.<* mw ? (x + mw, x - mw))
+        in index3 (z A.< md ? (z + md, z - md))
+                  (y A.< mh ? (y + mh, y - mh))
+                  (x A.< mw ? (x + mw, x - mw))
     Z:.h:.w:.d   = unlift (A.shape arr)
     (mh,mw,md)   = (h `div` 2, w `div` 2, d `div` 2)
 
