@@ -110,5 +110,10 @@ Source-repository head
   Type:                 git
   Location:             git://github.com/AccelerateHS/accelerate-fft.git
 
+Source-repository this
+  Type:                 git
+  Tag:                  1.0.0.0
+  Location:             git://github.com/AccelerateHS/accelerate-fft.git
+
 -- vim: nospell
 
