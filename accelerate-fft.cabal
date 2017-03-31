@@ -49,7 +49,7 @@ Flag llvm-cpu
 
 Library
   build-depends:
-        base                    >= 4.7
+        base                    >= 4.7  && < 4.10
       , accelerate              == 1.0.*
       , bytestring              >= 0.9
 
