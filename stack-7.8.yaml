@@ -50,6 +50,7 @@ extra-deps:
 - 'nvvm-0.7.5.2'
 - 'SafeSemaphore-0.10.1'
 - 'semigroups-0.18.1'
+- 'th-lift-instances-0.1.11'
 - 'transformers-0.4.3.0'
 - 'transformers-compat-0.4.0.4'
 - 'unique-0'
