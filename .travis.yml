@@ -20,11 +20,6 @@ addons:
       - hvr-ghc
       - ubuntu-toolchain-r-test
       - llvm-toolchain-trusty
-      # - llvm-toolchain-precise-3.5
-      # - llvm-toolchain-precise-3.6
-      # - llvm-toolchain-precise-3.7
-      # - llvm-toolchain-precise-3.8
-      # - llvm-toolchain-precise-3.9
       # - llvm-toolchain-precise-4.0  # not white-listed yet
       - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-4.0 main'
         key_url: 'http://apt.llvm.org/llvm-snapshot.gpg.key'
@@ -39,15 +34,6 @@ addons:
 
 matrix:
   include:
-    - env: GHC=7.8.4 CABAL=1.18 LLVM=4.0.0 CUDA=8.0.61-1
-      compiler: "GHC 7.8"
-      addons:
-        apt:
-          sources: *apt_sources
-          packages:
-            - *apt_packages
-            - cabal-install-1.18
-
     - env: GHC=7.10.3 CABAL=1.22 LLVM=4.0.0 CUDA=8.0.61-1
       compiler: "GHC 7.10"
       addons:
@@ -116,11 +102,10 @@ install:
 script:
   - |
       if [ ${GHC} == head -o ! -e stack.yaml ]; then
-        travis_retry cabal install
-        travis_retry cabal haddock
+        travis_retry cabal install || exit 1
+        travis_retry cabal haddock || exit 1
       else
-        travis_retry stack build --fast --no-terminal
-        travis_retry stack build --fast --no-terminal --haddock --no-haddock-deps
+        travis_retry stack build --fast --no-terminal --haddock --no-haddock-deps || exit 1
       fi
 
 after_success:
