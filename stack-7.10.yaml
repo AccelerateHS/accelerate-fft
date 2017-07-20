@@ -32,7 +32,6 @@ packages:
   extra-dep: true
 
 extra-deps:
-- 'accelerate-cuda-0.17.0.0'
 - 'Cabal-1.24.2.0'
 - 'chaselev-deque-0.5.0.5'
 # - 'cuda-0.7.5.2'
@@ -56,10 +55,7 @@ flags:
     bounds-checks: false
     debug: false
     internal-checks: false
-  accelerate-cuda:
-    debug: false
   accelerate-fft:
-    cuda: true
     llvm-cpu: true
     llvm-ptx: true
 

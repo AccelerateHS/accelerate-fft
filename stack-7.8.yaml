@@ -32,7 +32,6 @@ packages:
   extra-dep: true
 
 extra-deps:
-- 'accelerate-cuda-0.17.0.0'
 - 'atomic-primops-0.8.0.2'
 - 'base-orphans-0.4.4'
 - 'Cabal-1.24.2.0'
@@ -67,10 +66,7 @@ flags:
     bounds-checks: false
     debug: false
     internal-checks: false
-  accelerate-cuda:
-    debug: false
   accelerate-fft:
-    cuda: true
     llvm-cpu: false   # https://github.com/cartazio/storable-complex/pull/1
     llvm-ptx: false   # https://github.com/cartazio/storable-complex/pull/1
 

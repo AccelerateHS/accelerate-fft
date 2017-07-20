@@ -34,10 +34,6 @@ extra-source-files:
     cubits/twine_f32.cu
     cubits/twine_f64.cu
 
-Flag cuda
-  Description:          Use CUFFT-based implementation in the CUDA backend
-  Default:              False
-
 Flag llvm-ptx
   Description:          Use CUFFT-based implementation in the LLVM.PTX backend
   Default:              True
@@ -65,16 +61,16 @@ Library
 
   ghc-options:          -O2 -Wall -funbox-strict-fields
 
-  if flag(cuda)
-    cpp-options:        -DACCELERATE_CUDA_BACKEND
-    build-depends:
-        accelerate-cuda         >= 0.16
-      , cuda                    >= 0.5
-      , cufft                   >= 0.1.2
-      , file-embed              >= 0.0.10
-
-    other-modules:
-      Data.Array.Accelerate.Math.FFT.CUDA
+  -- if flag(cuda)
+  --   cpp-options:        -DACCELERATE_CUDA_BACKEND
+  --   build-depends:
+  --       accelerate-cuda         >= 0.16
+  --     , cuda                    >= 0.5
+  --     , cufft                   >= 0.1.2
+  --     , file-embed              >= 0.0.10
+  --
+  --   other-modules:
+  --     Data.Array.Accelerate.Math.FFT.CUDA
 
   if flag(llvm-cpu)
     cpp-options:        -DACCELERATE_LLVM_NATIVE_BACKEND

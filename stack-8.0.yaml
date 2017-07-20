@@ -57,7 +57,6 @@ flags:
     debug: false
     nvvm: false
   accelerate-fft:
-    cuda: false
     llvm-cpu: true
     llvm-ptx: true
 

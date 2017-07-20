@@ -27,9 +27,9 @@
 -- a power-of-two in each dimension.
 --
 -- For performance, compile against the foreign library bindings (using any
--- number of '-fcuda', '-fllvm-gpu', and '-fllvm-cpu' for the accelerate-cuda,
--- accelerate-llvm-ptx, and accelerate-llvm-native backends respectively), which
--- have none of the above restrictions.
+-- number of '-fllvm-ptx', and '-fllvm-cpu' for the accelerate-llvm-ptx, and
+-- accelerate-llvm-native backends, respectively), which have none of the above
+-- restrictions.
 --
 
 module Data.Array.Accelerate.Math.FFT (
@@ -53,9 +53,6 @@ import qualified Data.Array.Accelerate.Math.FFT.LLVM.Native         as Native
 #endif
 #ifdef ACCELERATE_LLVM_PTX_BACKEND
 import qualified Data.Array.Accelerate.Math.FFT.LLVM.PTX            as PTX
-#endif
-#ifdef ACCELERATE_CUDA_BACKEND
-import qualified Data.Array.Accelerate.Math.FFT.CUDA                as CUDA
 #endif
 
 import Data.Bits
@@ -105,9 +102,6 @@ fft1D' mode (Z :. len) arr
 #ifdef ACCELERATE_LLVM_PTX_BACKEND
                   foreignAcc (PTX.fft1D mode) $
 #endif
-#ifdef ACCELERATE_CUDA_BACKEND
-                  foreignAcc (CUDA.fft1D mode) $
-#endif
                   fft sign Z len
     in
     case mode of
@@ -151,9 +145,6 @@ fft2D' mode (Z :. height :. width) arr
 #endif
 #ifdef ACCELERATE_LLVM_PTX_BACKEND
                   foreignAcc (PTX.fft2D mode) $
-#endif
-#ifdef ACCELERATE_CUDA_BACKEND
-                  foreignAcc (CUDA.fft2D mode) $
 #endif
                   fft'
 
@@ -202,9 +193,6 @@ fft3D' mode (Z :. depth :. height :. width) arr
 #endif
 #ifdef ACCELERATE_LLVM_PTX_BACKEND
                   foreignAcc (PTX.fft3D mode) $
-#endif
-#ifdef ACCELERATE_CUDA_BACKEND
-                  foreignAcc (CUDA.fft3D mode) $
 #endif
                   fft'
 
