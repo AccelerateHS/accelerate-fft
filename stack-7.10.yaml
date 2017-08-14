@@ -9,12 +9,12 @@ packages:
 # extra-deps:
 - location:
     git:    https://github.com/AccelerateHS/accelerate.git
-    commit: a4e5d51334f303a32ee45979f342f8c391b43da3
+    commit: 1daff6959b6ec30cf1e13a087d576e3b2403585b
   extra-dep: true
 
 - location:
     git:    https://github.com/AccelerateHS/accelerate-llvm.git
-    commit: c042c80388dac6b15fdb17d1f4f66b10d6c47e0a
+    commit: 979fb8029a33009847d119157f90abefb027a24b
   extra-dep: true
   subdirs:
     - 'accelerate-llvm'
@@ -23,12 +23,12 @@ packages:
 
 - location:
     git:    https://github.com/tmcdonell/cuda.git
-    commit: 1bff17152088384b71a439b01ec993a54e2618c9
+    commit: c39da756025d7a6fd9fb3fd368736ee05ced5df2
   extra-dep: true
 
 - location:
     git:    https://github.com/tmcdonell/cufft.git
-    commit: cecc8bdfe857463773635010ac350b80d0fe99e3
+    commit: 3b48501f2bb732eae8262454d53b5870bf2ce640
   extra-dep: true
 
 extra-deps:
@@ -37,7 +37,7 @@ extra-deps:
 # - 'cuda-0.7.5.2'
 # - 'cufft-0.7.5.0'
 - 'libffi-0.1'
-- 'llvm-hs-4.1.0.0'
+- 'llvm-hs-4.2.0'
 - 'llvm-hs-pure-4.1.0.0'
 - 'nvvm-0.7.5.2'
 - 'process-1.4.3.0'
