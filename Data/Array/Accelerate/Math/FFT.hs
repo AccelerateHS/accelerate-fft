@@ -97,7 +97,7 @@ fft1D' :: forall e. FFTElt e
        -> Acc (Array DIM1 (Complex e))
 fft1D' mode (Z :. len) arr
   = let sign    = signOfMode mode :: e
-        scale   = P.fromIntegral len
+        (Z :. scale) = A.unlift $ A.shape arr
         go      =
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
                   foreignAcc (Native.fft1D mode) $
@@ -111,7 +111,7 @@ fft1D' mode (Z :. len) arr
                   fft sign Z len
     in
     case mode of
-      Inverse -> A.map (/scale) (go arr)
+      Inverse -> A.map (/(A.fromIntegral scale)) (go arr)
       _       -> go arr
 
 
@@ -144,7 +144,8 @@ fft2D' :: forall e. FFTElt e
        -> Acc (Array DIM2 (Complex e))
 fft2D' mode (Z :. height :. width) arr
   = let sign    = signOfMode mode :: e
-        scale   = P.fromIntegral (width * height)
+        (Z :. w :. h) = A.unlift $ A.shape arr
+        scale   = A.fromIntegral (w * h)
         go      =
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
                   foreignAcc (Native.fft2D mode) $
@@ -195,7 +196,8 @@ fft3D' :: forall e. FFTElt e
        -> Acc (Array DIM3 (Complex e))
 fft3D' mode (Z :. depth :. height :. width) arr
   = let sign    = signOfMode mode :: e
-        scale   = P.fromIntegral (width * height * depth)
+        (Z :. w :. h :. d) = A.unlift $ A.shape arr
+        scale   = A.fromIntegral (w * h * d)
         go      =
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
                   foreignAcc (Native.fft3D mode) $
@@ -305,4 +307,6 @@ isPow2 :: Int -> Bool
 isPow2 0 = True
 isPow2 1 = False
 isPow2 x = x .&. (x-1) P.== 0
+
+
 
