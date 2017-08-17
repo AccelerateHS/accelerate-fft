@@ -29,6 +29,8 @@ Category:               Compilers/Interpreters, Concurrency, Data, Parallelism
 Stability:              Experimental
 
 extra-source-files:
+    README.md
+    CHANGELOG.md
     cubits/twine_f32.ptx
     cubits/twine_f64.ptx
     cubits/twine_f32.cu
