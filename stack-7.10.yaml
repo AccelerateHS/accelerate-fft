@@ -8,13 +8,13 @@ packages:
 
 # extra-deps:
 - location:
-    git:    https://github.com/AccelerateHS/accelerate.git
-    commit: 1daff6959b6ec30cf1e13a087d576e3b2403585b
+    git:    https://github.com/tmcdonell/accelerate.git
+    commit: aee5f0232e2cfdcf030e2a7ca0570e9ced017d63
   extra-dep: true
 
 - location:
-    git:    https://github.com/AccelerateHS/accelerate-llvm.git
-    commit: 979fb8029a33009847d119157f90abefb027a24b
+    git:    https://github.com/tmcdonell/accelerate-llvm.git
+    commit: 3bc4216e527fa77149259dd19d3d4103ffed9518
   extra-dep: true
   subdirs:
     - 'accelerate-llvm'
@@ -31,11 +31,16 @@ packages:
     commit: 3b48501f2bb732eae8262454d53b5870bf2ce640
   extra-dep: true
 
+- location:
+    git:    https://github.com/tmcdonell/nvvm.git
+    commit: 632323e2a7c3c75bb07a3edb35de47273dc4cd07
+  extra-dep: true
+
 extra-deps:
 - 'Cabal-1.24.2.0'
 - 'chaselev-deque-0.5.0.5'
-# - 'cuda-0.7.5.2'
-# - 'cufft-0.7.5.0'
+# - 'cuda-0.8.0.0'
+# - 'cufft-0.8.0.0'
 - 'libffi-0.1'
 - 'llvm-hs-4.2.0'
 - 'llvm-hs-pure-4.1.0.0'
