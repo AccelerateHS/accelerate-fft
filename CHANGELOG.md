@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and the
 project adheres to the [Haskell Package Versioning
 Policy (PVP)](https://pvp.haskell.org)
 
-## [1.1.0.0] - 2017-08-25
+## [1.1.0.0] - 2017-09-21
   * [#5]: fix to ignore `sh` parameter in inverse mode
   * Drop support for (deprecated) `accelerate-cuda` backend
   * Build against FFTW and CUFFT foreign implementations by default
