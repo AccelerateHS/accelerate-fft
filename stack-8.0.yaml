@@ -6,58 +6,18 @@ resolver: lts-9.0
 packages:
 - '.'
 
-- location:
-    git:    https://github.com/tmcdonell/accelerate.git
-    commit: aee5f0232e2cfdcf030e2a7ca0570e9ced017d63
-  extra-dep: true
-
-- location:
-    git:    https://github.com/tmcdonell/accelerate-llvm.git
-    commit: 3bc4216e527fa77149259dd19d3d4103ffed9518
-  extra-dep: true
-  subdirs:
-    - 'accelerate-llvm'
-    - 'accelerate-llvm-native'
-    - 'accelerate-llvm-ptx'
-
-- location:
-    git:    https://github.com/tmcdonell/cuda.git
-    commit: c39da756025d7a6fd9fb3fd368736ee05ced5df2
-  extra-dep: true
-
-- location:
-    git:    https://github.com/tmcdonell/cufft.git
-    commit: 3b48501f2bb732eae8262454d53b5870bf2ce640
-  extra-dep: true
-
-- location:
-    git:    https://github.com/tmcdonell/nvvm.git
-    commit: 632323e2a7c3c75bb07a3edb35de47273dc4cd07
-  extra-dep: true
-
-extra-deps: []
-# - 'cuda-0.8.0.0'
-# - 'cufft-0.7.5.0'
-# - 'nvvm-0.8.0.0'
+extra-deps:
+- 'accelerate-1.1.0.0'
+- 'accelerate-llvm-1.1.0.0'
+- 'accelerate-llvm-native-1.1.0.0'
+- 'accelerate-llvm-ptx-1.1.0.0'
+- 'Cabal-2.0.0.2'
+- 'cuda-0.8.0.0'
+- 'cufft-0.8.0.0'
+- 'nvvm-0.8.0.0'
 
 # Override default flag values for local packages and extra-deps
-flags:
-  accelerate:
-    unsafe-checks: false
-    bounds-checks: false
-    debug: false
-    internal-checks: false
-  accelerate-llvm:
-    debug: false
-    chase-lev: true
-  accelerate-llvm-native:
-    debug: false
-  accelerate-llvm-ptx:
-    debug: false
-    nvvm: false
-  accelerate-fft:
-    llvm-cpu: true
-    llvm-ptx: true
+flags: {}
 
 # Extra package databases containing global packages
 extra-package-dbs: []
