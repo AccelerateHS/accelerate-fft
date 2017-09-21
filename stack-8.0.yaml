@@ -11,6 +11,7 @@ extra-deps:
 - 'accelerate-llvm-1.1.0.0'
 - 'accelerate-llvm-native-1.1.0.0'
 - 'accelerate-llvm-ptx-1.1.0.0'
+- 'Cabal-2.0.0.2'
 - 'cuda-0.8.0.0'
 - 'cufft-0.8.0.0'
 - 'nvvm-0.8.0.0'
