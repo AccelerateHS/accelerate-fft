@@ -36,7 +36,7 @@ module Data.Array.Accelerate.Math.FFT (
 
   Mode(..),
   FFTElt,
-  fft1D, fft1D',
+  fft1D, fft1D', fft1D_2r', fft1D_3r', 
   fft2D, fft2D',
   fft3D, fft3D',
   fft
@@ -156,6 +156,61 @@ fft2D' mode (Z :. height :. width) arr
       Inverse -> A.map (/scale) (go arr)
       _       -> go arr
 
+-- | Discrete Fourier Transform of all rows in a matrix.
+--
+-- The default implementation requires the row`s length to be a power of two.
+-- The FFI-backed implementations ignore the Haskell-side size parameter (second
+-- argument).
+
+fft1D_2r' :: forall e sh. (FFTElt e, Shape sh, sh ~ DIM1)
+         => Mode
+         -> (sh :. Int)
+         -> Acc (Array DIM2 (Complex e))
+         -> Acc (Array DIM2 (Complex e))
+fft1D_2r' mode (A.Z :. height :. width) arr
+  = let sign    = signOfMode mode :: e
+        (A.Z A.:. (eWidth :: A.Exp Int) A.:. (_ :: A.Exp Int))  = A.unlift $ A.shape arr
+        scale   = (A.fromIntegral (A.size arr))/(A.fromIntegral $ eWidth)
+        go      =
+#ifdef ACCELERATE_LLVM_NATIVE_BACKEND
+                  foreignAcc (Native.fft1D_r mode) $
+#endif  
+#ifdef ACCELERATE_LLVM_PTX_BACKEND
+                  foreignAcc (PTX.fft1D_r mode) $
+#endif            
+                  fft sign (Z:.width) height
+    in
+    case mode of
+      Inverse -> A.map (/scale) (go arr)
+      _       -> go arr
+
+-- | Discrete Fourier Transform of all rows in a 3D array.
+--
+-- The default implementation requires the row`s length to be a power of two.
+-- The FFI-backed implementations ignore the Haskell-side size parameter (second
+-- argument).
+
+fft1D_3r' :: forall e sh. (FFTElt e, Shape sh, sh ~ DIM2)
+         => Mode
+         -> (sh :. Int)
+         -> Acc (Array DIM3 (Complex e))
+         -> Acc (Array DIM3 (Complex e))
+fft1D_3r' mode (A.Z :. depth :. height :. width) arr
+  = let sign    = signOfMode mode :: e
+        (A.Z A.:. (eWidth :: A.Exp Int) A.:. (_ :: A.Exp Int) A.:. (_ :: A.Exp Int))  = A.unlift $ A.shape arr
+        scale   = (A.fromIntegral (A.size arr))/(A.fromIntegral $ eWidth)
+        go      =
+#ifdef ACCELERATE_LLVM_NATIVE_BACKEND
+                  foreignAcc (Native.fft1D_3r mode) $
+#endif  
+#ifdef ACCELERATE_LLVM_PTX_BACKEND
+                  foreignAcc (PTX.fft1D_r mode) $
+#endif            
+                  fft sign (Z:.depth :.height) width
+    in
+    case mode of
+      Inverse -> A.map (/scale) (go arr)
+      _       -> go arr
 
 -- Cube Transform
 -- --------------
@@ -293,6 +348,5 @@ isPow2 :: Int -> Bool
 isPow2 0 = True
 isPow2 1 = False
 isPow2 x = x .&. (x-1) P.== 0
-
 
 

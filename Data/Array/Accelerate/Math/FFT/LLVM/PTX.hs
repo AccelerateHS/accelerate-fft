@@ -19,6 +19,7 @@
 module Data.Array.Accelerate.Math.FFT.LLVM.PTX (
 
   fft1D,
+  fft1D_r,
   fft2D,
   fft3D,
 
@@ -54,17 +55,22 @@ import System.IO.Unsafe
 fft1D :: IsFloating e
       => Mode
       -> ForeignAcc (Vector (Complex e) -> (Vector (Complex e)))
-fft1D mode = ForeignAcc "fft1D" $ liftAtoC (cuFFT mode)
+fft1D mode = ForeignAcc "fft1D" $ liftAtoC (cuFFT mode Full)
+
+fft1D_r :: (IsFloating e, Shape sh)
+        => Mode
+        -> ForeignAcc (Array (sh :. Int) (Complex e) -> (Array (sh :. Int) (Complex e)))
+fft1D_r mode = ForeignAcc "fft1D" $ liftAtoC (cuFFT mode ByRow)
 
 fft2D :: IsFloating e
       => Mode
       -> ForeignAcc (Array DIM2 (Complex e) -> (Array DIM2 (Complex e)))
-fft2D mode = ForeignAcc "fft2D" $ liftAtoC (cuFFT mode)
+fft2D mode = ForeignAcc "fft2D" $ liftAtoC (cuFFT mode Full)
 
 fft3D :: IsFloating e
       => Mode
       -> ForeignAcc (Array DIM3 (Complex e) -> (Array DIM3 (Complex e)))
-fft3D mode = ForeignAcc "fft3D" $ liftAtoC (cuFFT mode)
+fft3D mode = ForeignAcc "fft3D" $ liftAtoC (cuFFT mode Full)
 
 
 liftAtoC
@@ -85,14 +91,17 @@ liftAtoC f s =
 --
 cuFFT :: forall sh e. (Shape sh, IsFloating e)
       => Mode
+      -> Mode_
       -> Stream
       -> Array (sh:.Int) e
       -> LLVM PTX (Array (sh:.Int) e)
-cuFFT mode stream arr =
+cuFFT mode mode_ stream arr =
   withScalarArrayPtr arr stream $ \d_arr -> liftIO $
   withLifetime           stream $ \st    -> do
     let sh :. sz = shape arr
-    p <- plan (sh :. sz `quot` 2) (undefined::e)  -- recall this is an array of packed (Vec2 e)
+    p <- case mode_ of 
+           Full -> plan (sh :. sz `quot` 2) (undefined::e)  -- recall this is an array of packed (Vec2 e)
+           ByRow -> plan' (sh :. sz `quot` 2) (undefined::e)
     FFT.setStream p st
     case floatingType :: FloatingType e of
       TypeFloat{}   -> FFT.execC2C p d_arr d_arr (signOfMode mode) >> return arr
@@ -164,7 +173,6 @@ c2a stream cs | FloatingDict <- floatingDict (floatingType :: FloatingType e) = 
       [ CUDA.VArg d_re, CUDA.VArg d_im, CUDA.VArg d_cs, CUDA.IArg (fromIntegral n) ]
     return arr
 
-
 -- | Generate an execute plan for a given type and size of FFT. These plans are
 -- cached so that subsequent invocations are quicker.
 --
@@ -187,6 +195,27 @@ plan (shapeToList -> sh) _ =
            TypeCFloat{}  -> FFT.C2C
            TypeCDouble{} -> FFT.Z2Z
 
+-- | Generate an execute plan for "row-by-row" for a given type and size of FFT. These plans are
+-- cached so that subsequent invocations are quicker.
+--
+
+plan' :: forall sh e. (Shape sh, IsFloating e) => sh -> e -> IO FFT.Handle
+plan' (shapeToList -> sh) _ =
+  modifyMVar fft_plans $ \ps ->
+    case lookup (ty, sh) ps of
+      Just p  -> return (ps, p)
+      Nothing -> do
+        let asize = foldr1 (*) sh
+        p <- case sh of 
+              (w:_:_) -> FFT.planMany [w] (Just ([0],1,w)) (Just ([0],1,w)) ty (asize `div` w)
+              _ -> error "Array dimension must be > 1"
+        return (((ty,sh),p) : ps, p)
+  where
+    ty = case floatingType :: FloatingType e of
+           TypeFloat{}   -> FFT.C2C
+           TypeDouble{}  -> FFT.Z2Z
+           TypeCFloat{}  -> FFT.C2C
+           TypeCDouble{} -> FFT.Z2Z
 
 -- | Load the module to convert between SoA and AoS representation for the given
 -- type. This is cached for subsequent reuse.
@@ -276,4 +305,3 @@ ptx_twine_modules = unsafePerformIO $ do
       $ withMVar mv
       $ mapM_ (\((_,ctx),mdl) -> bracket_ (CUDA.push ctx) CUDA.pop (CUDA.unload mdl))
   return mv
-
