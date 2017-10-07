@@ -169,8 +169,8 @@ fft1D_2r' :: forall e sh. (FFTElt e, Shape sh, sh ~ DIM1)
          -> Acc (Array DIM2 (Complex e))
 fft1D_2r' mode (A.Z :. height :. width) arr
   = let sign    = signOfMode mode :: e
-        (A.Z A.:. (eWidth :: A.Exp Int) A.:. (_ :: A.Exp Int))  = A.unlift $ A.shape arr
-        scale   = (A.fromIntegral (A.size arr))/(A.fromIntegral $ eWidth)
+        (A.Z A.:. (eHeight :: A.Exp Int) A.:. (_ :: A.Exp Int))  = A.unlift $ A.shape arr
+        scale   = (A.fromIntegral (A.size arr))/(A.fromIntegral $ eHeight)
         go      =
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
                   foreignAcc (Native.fft1D_r mode) $
@@ -197,8 +197,8 @@ fft1D_3r' :: forall e sh. (FFTElt e, Shape sh, sh ~ DIM2)
          -> Acc (Array DIM3 (Complex e))
 fft1D_3r' mode (A.Z :. depth :. height :. width) arr
   = let sign    = signOfMode mode :: e
-        (A.Z A.:. (eWidth :: A.Exp Int) A.:. (_ :: A.Exp Int) A.:. (_ :: A.Exp Int))  = A.unlift $ A.shape arr
-        scale   = (A.fromIntegral (A.size arr))/(A.fromIntegral $ eWidth)
+        (A.Z A.:. (eDepth :: A.Exp Int) A.:. (eHeight :: A.Exp Int) A.:. (_ :: A.Exp Int))  = A.unlift $ A.shape arr
+        scale   = (A.fromIntegral (A.size arr))/(A.fromIntegral $ eDepth * eHeight)
         go      =
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
                   foreignAcc (Native.fft1D_3r mode) $
