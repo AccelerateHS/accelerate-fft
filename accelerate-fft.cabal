@@ -48,7 +48,7 @@ Flag llvm-cpu
 Library
   build-depends:
         base                    >= 4.7  && < 4.11
-      , accelerate              >= 1.0  && < 1.2
+      , accelerate              >= 1.0  && < 1.3
       , bytestring              >= 0.9
 
   exposed-modules:
@@ -63,22 +63,11 @@ Library
 
   ghc-options:          -O2 -Wall -funbox-strict-fields
 
-  -- if flag(cuda)
-  --   cpp-options:        -DACCELERATE_CUDA_BACKEND
-  --   build-depends:
-  --       accelerate-cuda         >= 0.16
-  --     , cuda                    >= 0.5
-  --     , cufft                   >= 0.1.2
-  --     , file-embed              >= 0.0.10
-  --
-  --   other-modules:
-  --     Data.Array.Accelerate.Math.FFT.CUDA
-
   if flag(llvm-cpu)
     cpp-options:        -DACCELERATE_LLVM_NATIVE_BACKEND
     build-depends:
-        accelerate-llvm         >= 1.0  && < 1.2
-      , accelerate-llvm-native  >= 1.0  && < 1.2
+        accelerate-llvm         >= 1.0  && < 1.3
+      , accelerate-llvm-native  >= 1.0  && < 1.3
       , carray                  >= 0.1.5
       , fft                     >= 0.1.8
       , storable-complex        >= 0.2
@@ -89,8 +78,8 @@ Library
   if flag(llvm-ptx)
     cpp-options:        -DACCELERATE_LLVM_PTX_BACKEND
     build-depends:
-        accelerate-llvm         >= 1.0  && < 1.2
-      , accelerate-llvm-ptx     >= 1.0  && < 1.2
+        accelerate-llvm         >= 1.0  && < 1.3
+      , accelerate-llvm-ptx     >= 1.0  && < 1.3
       , cuda                    >= 0.5
       , cufft                   >= 0.1.2
       , file-embed              >= 0.0.10
