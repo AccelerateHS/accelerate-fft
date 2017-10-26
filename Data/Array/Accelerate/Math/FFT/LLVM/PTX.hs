@@ -99,7 +99,7 @@ cuFFT mode mode_ stream arr =
   withScalarArrayPtr arr stream $ \d_arr -> liftIO $
   withLifetime           stream $ \st    -> do
     let sh :. sz = shape arr
-    p <- case mode_ of 
+    p <- case mode_ of
            Full -> plan (sh :. sz `quot` 2) (undefined::e)  -- recall this is an array of packed (Vec2 e)
            ByRow -> plan' (sh :. sz `quot` 2) (undefined::e)
     FFT.setStream p st
@@ -206,7 +206,7 @@ plan' (shapeToList -> sh) _ =
       Just p  -> return (ps, p)
       Nothing -> do
         let asize = foldr1 (*) sh
-        p <- case sh of 
+        p <- case sh of
               (w:_:_) -> FFT.planMany [w] (Just ([0],1,w)) (Just ([0],1,w)) ty (asize `div` w)
               _ -> error "Array dimension must be > 1"
         return (((ty,sh),p) : ps, p)
@@ -305,3 +305,4 @@ ptx_twine_modules = unsafePerformIO $ do
       $ withMVar mv
       $ mapM_ (\((_,ctx),mdl) -> bracket_ (CUDA.push ctx) CUDA.pop (CUDA.unload mdl))
   return mv
+

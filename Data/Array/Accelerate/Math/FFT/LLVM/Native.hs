@@ -67,7 +67,7 @@ fft1D mode
     go :: FFTWReal r => CArray Int (Complex r) -> CArray Int (Complex r)
     go = FFT.dftGU (signOf mode) flags [0]
 
-fft1D_r :: forall e. (Elt e, IsFloating e) 
+fft1D_r :: forall e. (Elt e, IsFloating e)
         => Mode
         -> ForeignAcc (Array DIM2 (Complex e) -> Array DIM2 (Complex e))
 fft1D_r mode
@@ -76,12 +76,12 @@ fft1D_r mode
       TypeFloat{}   -> liftIO . liftAtoC go
       TypeDouble{}  -> liftIO . liftAtoC go
       TypeCFloat{}  -> liftIO . liftAtoC go
-      TypeCDouble{} -> liftIO . liftAtoC go   
+      TypeCDouble{} -> liftIO . liftAtoC go
   where
     go :: FFTWReal r => CArray (Int,Int) (Complex r) -> CArray (Int,Int) (Complex r)
     go = FFT.dftGU (signOf mode) flags [1]
 
-fft1D_3r :: forall e. (Elt e, IsFloating e) 
+fft1D_3r :: forall e. (Elt e, IsFloating e)
         => Mode
         -> ForeignAcc (Array DIM3 (Complex e) -> Array DIM3 (Complex e))
 fft1D_3r mode
@@ -90,7 +90,7 @@ fft1D_3r mode
       TypeFloat{}   -> liftIO . liftAtoC go
       TypeDouble{}  -> liftIO . liftAtoC go
       TypeCFloat{}  -> liftIO . liftAtoC go
-      TypeCDouble{} -> liftIO . liftAtoC go   
+      TypeCDouble{} -> liftIO . liftAtoC go
   where
     go :: FFTWReal r => CArray (Int,Int,Int) (Complex r) -> CArray (Int,Int,Int) (Complex r)
     go = FFT.dftGU (signOf mode) flags [2]

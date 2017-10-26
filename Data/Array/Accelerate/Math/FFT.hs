@@ -36,7 +36,7 @@ module Data.Array.Accelerate.Math.FFT (
 
   Mode(..),
   FFTElt,
-  fft1D, fft1D', fft1D_2r', fft1D_3r', 
+  fft1D, fft1D', fft1D_2r', fft1D_3r',
   fft2D, fft2D',
   fft3D, fft3D',
   fft
@@ -174,10 +174,10 @@ fft1D_2r' mode (A.Z :. height :. width) arr
         go      =
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
                   foreignAcc (Native.fft1D_r mode) $
-#endif  
+#endif
 #ifdef ACCELERATE_LLVM_PTX_BACKEND
                   foreignAcc (PTX.fft1D_r mode) $
-#endif            
+#endif
                   fft sign (Z:.width) height
     in
     case mode of
@@ -202,10 +202,10 @@ fft1D_3r' mode (A.Z :. depth :. height :. width) arr
         go      =
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
                   foreignAcc (Native.fft1D_3r mode) $
-#endif  
+#endif
 #ifdef ACCELERATE_LLVM_PTX_BACKEND
                   foreignAcc (PTX.fft1D_r mode) $
-#endif            
+#endif
                   fft sign (Z:.depth :.height) width
     in
     case mode of
@@ -343,10 +343,8 @@ append xs ys
              (\ix -> let sz :. i = unlift ix :: Exp sh :. Exp Int
                      in  i A.< n ? (xs ! lift (sz:.i), ys ! lift (sz:.i-n) ))
 
-
 isPow2 :: Int -> Bool
 isPow2 0 = True
 isPow2 1 = False
 isPow2 x = x .&. (x-1) P.== 0
-
 

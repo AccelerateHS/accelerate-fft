@@ -26,9 +26,10 @@ signOfMode m
       Reverse   ->  1
       Inverse   ->  1
 
--- mode of FFT on 2D or 3D arrays - full or row by row 
-
+-- Mode of FFT on 2D or 3D arrays - full or row by row
+--
 data Mode_
   = Full
   | ByRow
-  deriving (Eq,Show)
+  deriving (Eq, Show)
+
