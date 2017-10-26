@@ -1,13 +1,12 @@
-{-# LANGUAGE CPP                      #-}
-{-# LANGUAGE ConstraintKinds          #-}
-{-# LANGUAGE EmptyDataDecls           #-}
-{-# LANGUAGE FlexibleContexts         #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE GADTs                    #-}
-{-# LANGUAGE ScopedTypeVariables      #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeOperators            #-}
-{-# LANGUAGE ViewPatterns             #-}
+{-# LANGUAGE CPP                 #-}
+{-# LANGUAGE ConstraintKinds     #-}
+{-# LANGUAGE EmptyDataDecls      #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE ViewPatterns        #-}
 -- |
 -- Module      : Data.Array.Accelerate.Math.FFT
 -- Copyright   : [2012..2017] Manuel M T Chakravarty, Gabriele Keller, Trevor L. McDonell
@@ -158,19 +157,19 @@ fft2D' mode (Z :. height :. width) arr
 
 -- | Discrete Fourier Transform of all rows in a matrix.
 --
--- The default implementation requires the row`s length to be a power of two.
--- The FFI-backed implementations ignore the Haskell-side size parameter (second
--- argument).
+-- The default implementation requires the row length to be a power of two. The
+-- FFI-backed implementations ignore the Haskell-side size parameter (second
+-- argument) and do not have this restriction.
 
-fft1D_2r' :: forall e sh. (FFTElt e, Shape sh, sh ~ DIM1)
-         => Mode
-         -> (sh :. Int)
-         -> Acc (Array DIM2 (Complex e))
-         -> Acc (Array DIM2 (Complex e))
-fft1D_2r' mode (A.Z :. height :. width) arr
+fft1D_2r'
+    :: forall e. FFTElt e
+    => Mode
+    -> DIM2
+    -> Acc (Array DIM2 (Complex e))
+    -> Acc (Array DIM2 (Complex e))
+fft1D_2r' mode (Z :. height :. width) arr
   = let sign    = signOfMode mode :: e
-        (A.Z A.:. (eHeight :: A.Exp Int) A.:. (_ :: A.Exp Int))  = A.unlift $ A.shape arr
-        scale   = (A.fromIntegral (A.size arr))/(A.fromIntegral $ eHeight)
+        scale   = A.fromIntegral (indexHead (shape arr))
         go      =
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
                   foreignAcc (Native.fft1D_r mode) $
@@ -178,7 +177,7 @@ fft1D_2r' mode (A.Z :. height :. width) arr
 #ifdef ACCELERATE_LLVM_PTX_BACKEND
                   foreignAcc (PTX.fft1D_r mode) $
 #endif
-                  fft sign (Z:.width) height
+                  fft sign (Z :. width) height
     in
     case mode of
       Inverse -> A.map (/scale) (go arr)
@@ -190,15 +189,15 @@ fft1D_2r' mode (A.Z :. height :. width) arr
 -- The FFI-backed implementations ignore the Haskell-side size parameter (second
 -- argument).
 
-fft1D_3r' :: forall e sh. (FFTElt e, Shape sh, sh ~ DIM2)
-         => Mode
-         -> (sh :. Int)
-         -> Acc (Array DIM3 (Complex e))
-         -> Acc (Array DIM3 (Complex e))
-fft1D_3r' mode (A.Z :. depth :. height :. width) arr
+fft1D_3r'
+    :: forall e. FFTElt e
+    => Mode
+    -> DIM3
+    -> Acc (Array DIM3 (Complex e))
+    -> Acc (Array DIM3 (Complex e))
+fft1D_3r' mode (Z :. depth :. height :. width) arr
   = let sign    = signOfMode mode :: e
-        (A.Z A.:. (eDepth :: A.Exp Int) A.:. (eHeight :: A.Exp Int) A.:. (_ :: A.Exp Int))  = A.unlift $ A.shape arr
-        scale   = (A.fromIntegral (A.size arr))/(A.fromIntegral $ eDepth * eHeight)
+        scale   = A.fromIntegral (indexHead (shape arr))
         go      =
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
                   foreignAcc (Native.fft1D_3r mode) $
@@ -206,7 +205,7 @@ fft1D_3r' mode (A.Z :. depth :. height :. width) arr
 #ifdef ACCELERATE_LLVM_PTX_BACKEND
                   foreignAcc (PTX.fft1D_r mode) $
 #endif
-                  fft sign (Z:.depth :.height) width
+                  fft sign (Z :. depth :. height) width
     in
     case mode of
       Inverse -> A.map (/scale) (go arr)
