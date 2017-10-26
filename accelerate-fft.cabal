@@ -1,5 +1,5 @@
 Name:                   accelerate-fft
-Version:                1.1.0.0
+Version:                1.2.0.0
 Cabal-version:          >= 1.6
 Tested-with:            GHC >= 7.10
 Build-type:             Simple
@@ -99,7 +99,7 @@ Source-repository head
 
 Source-repository this
   Type:                 git
-  Tag:                  1.1.0.0
+  Tag:                  1.2.0.0
   Location:             git://github.com/AccelerateHS/accelerate-fft.git
 
 -- vim: nospell
