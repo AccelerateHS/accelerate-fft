@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ConstraintKinds     #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE RankNTypes          #-}
@@ -28,6 +29,10 @@ import Data.Array.Accelerate.Data.Bits
 import Data.Array.Accelerate.Data.Complex
 import Data.Array.Accelerate.Math.FFT.Mode
 import Data.Array.Accelerate.Math.FFT.Elt
+
+#if __GLASGOW_HASKELL__ < 800
+import Prelude                                                      ( fromInteger )
+#endif
 
 
 fft :: (Shape sh, Slice sh, FFTElt e)
