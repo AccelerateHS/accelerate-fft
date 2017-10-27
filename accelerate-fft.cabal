@@ -58,6 +58,8 @@ Library
       Data.Array.Accelerate.Math.DFT.Roots
 
   other-modules:
+      Data.Array.Accelerate.Math.FFT.Adhoc
+      Data.Array.Accelerate.Math.FFT.Elt
       Data.Array.Accelerate.Math.FFT.Mode
       Data.Array.Accelerate.Math.FFT.Twine
 

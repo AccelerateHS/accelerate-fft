@@ -17,34 +17,25 @@
 -- Stability   : experimental
 -- Portability : non-portable (GHC extensions)
 --
--- Computation of a Discrete Fourier Transform using the Cooley-Tuckey
--- algorithm. The time complexity is O(n log n) in the size of the input.
---
--- The base (default) implementation uses a naïve divide-and-conquer algorithm
--- whose absolute performance is appalling. It also requires that you know on
--- the Haskell side the size of the data being transformed, and that this is
--- a power-of-two in each dimension.
---
 -- For performance, compile against the foreign library bindings (using any
 -- number of '-fllvm-ptx', and '-fllvm-cpu' for the accelerate-llvm-ptx, and
--- accelerate-llvm-native backends, respectively), which have none of the above
--- restrictions.
+-- accelerate-llvm-native backends, respectively).
 --
 
 module Data.Array.Accelerate.Math.FFT (
 
   Mode(..),
   FFTElt,
-  fft1D, fft1D', fft1D_2r', fft1D_3r',
-  fft2D, fft2D',
-  fft3D, fft3D',
-  fft
+  fft1D, fft1D_2r, fft1D_3r,
+  fft2D,
+  fft3D,
 
 ) where
 
 import Data.Array.Accelerate                                        as A
-import Data.Array.Accelerate.Array.Sugar                            ( showShape, shapeToList )
 import Data.Array.Accelerate.Data.Complex
+import Data.Array.Accelerate.Math.FFT.Adhoc
+import Data.Array.Accelerate.Math.FFT.Elt
 import Data.Array.Accelerate.Math.FFT.Mode
 
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
@@ -54,45 +45,18 @@ import qualified Data.Array.Accelerate.Math.FFT.LLVM.Native         as Native
 import qualified Data.Array.Accelerate.Math.FFT.LLVM.PTX            as PTX
 #endif
 
-import Data.Bits
-import Text.Printf
-import Prelude                                                      as P
-
-
--- The type of supported FFT elements; namely 'Float' and 'Double'.
---
-type FFTElt e = (P.Num e, A.RealFloat e, A.FromIntegral Int e, A.IsFloating e)
-
 
 -- Vector Transform
 -- ----------------
 
 -- | Discrete Fourier Transform of a vector.
 --
--- The default implementation requires the array dimension to be a power of two
--- (else error).
---
-fft1D :: FFTElt e
+fft1D :: forall e. FFTElt e
       => Mode
-      -> Array DIM1 (Complex e)
       -> Acc (Array DIM1 (Complex e))
-fft1D mode vec
-  = fft1D' mode (arrayShape vec) (use vec)
-
-
--- | Discrete Fourier Transform of a vector.
---
--- The default implementation requires the array dimension to be a power of two.
--- The FFI-backed implementations ignore the Haskell-side size parameter (second
--- argument).
---
-fft1D' :: forall e. FFTElt e
-       => Mode
-       -> DIM1
-       -> Acc (Array DIM1 (Complex e))
-       -> Acc (Array DIM1 (Complex e))
-fft1D' mode (Z :. len) arr
-  = let sign    = signOfMode mode :: e
+      -> Acc (Array DIM1 (Complex e))
+fft1D mode arr
+  = let
         scale   = A.fromIntegral (A.length arr)
         go      =
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
@@ -101,7 +65,59 @@ fft1D' mode (Z :. len) arr
 #ifdef ACCELERATE_LLVM_PTX_BACKEND
                   foreignAcc (PTX.fft1D mode) $
 #endif
-                  fft sign Z len
+                  fft mode
+    in
+    case mode of
+      Inverse -> A.map (/scale) (go arr)
+      _       -> go arr
+
+
+-- | Discrete Fourier Transform of all rows in a matrix.
+--
+fft1D_2r
+    :: forall e. FFTElt e
+    => Mode
+    -> Acc (Array DIM2 (Complex e))
+    -> Acc (Array DIM2 (Complex e))
+fft1D_2r mode arr
+  = let
+        scale   = A.fromIntegral (indexHead (shape arr))
+        go      =
+#ifdef ACCELERATE_LLVM_NATIVE_BACKEND
+                  foreignAcc (Native.fft1D_r mode) $
+#endif
+#ifdef ACCELERATE_LLVM_PTX_BACKEND
+                  foreignAcc (PTX.fft1D_r mode) $
+#endif
+                  fft mode
+    in
+    case mode of
+      Inverse -> A.map (/scale) (go arr)
+      _       -> go arr
+
+
+-- | Discrete Fourier Transform of all rows in a 3D array.
+--
+-- The default implementation requires the row`s length to be a power of two.
+-- The FFI-backed implementations ignore the Haskell-side size parameter (second
+-- argument).
+
+fft1D_3r
+    :: forall e. FFTElt e
+    => Mode
+    -> Acc (Array DIM3 (Complex e))
+    -> Acc (Array DIM3 (Complex e))
+fft1D_3r mode arr
+  = let
+        scale   = A.fromIntegral (indexHead (shape arr))
+        go      =
+#ifdef ACCELERATE_LLVM_NATIVE_BACKEND
+                  foreignAcc (Native.fft1D_3r mode) $
+#endif
+#ifdef ACCELERATE_LLVM_PTX_BACKEND
+                  foreignAcc (PTX.fft1D_r mode) $
+#endif
+                  fft mode
     in
     case mode of
       Inverse -> A.map (/scale) (go arr)
@@ -113,30 +129,12 @@ fft1D' mode (Z :. len) arr
 
 -- | Discrete Fourier Transform of a matrix.
 --
--- The default implementation requires the array dimensions to be powers of two
--- (else error).
---
-fft2D :: FFTElt e
+fft2D :: forall e. FFTElt e
       => Mode
-      -> Array DIM2 (Complex e)
+      -> Acc (Array DIM2 (Complex e))
       -> Acc (Array DIM2 (Complex e))
 fft2D mode arr
-  = fft2D' mode (arrayShape arr) (use arr)
-
-
--- | Discrete Fourier Transform of a matrix.
---
--- The default implementation requires the array dimensions to be powers of two.
--- The FFI-backed implementations ignore the Haskell-side size parameter (second
--- argument).
---
-fft2D' :: forall e. FFTElt e
-       => Mode
-       -> DIM2
-       -> Acc (Array DIM2 (Complex e))
-       -> Acc (Array DIM2 (Complex e))
-fft2D' mode (Z :. height :. width) arr
-  = let sign    = signOfMode mode :: e
+  = let
         scale   = A.fromIntegral (A.size arr)
         go      =
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
@@ -147,100 +145,26 @@ fft2D' mode (Z :. height :. width) arr
 #endif
                   fft'
 
-        fft' a  = A.transpose . fft sign (Z:.height) width
-              >-> A.transpose . fft sign (Z:.width)  height
+        fft' a  = A.transpose . fft mode
+              >-> A.transpose . fft mode
                 $ a
     in
     case mode of
       Inverse -> A.map (/scale) (go arr)
       _       -> go arr
 
--- | Discrete Fourier Transform of all rows in a matrix.
---
--- The default implementation requires the row length to be a power of two. The
--- FFI-backed implementations ignore the Haskell-side size parameter (second
--- argument) and do not have this restriction.
-
-fft1D_2r'
-    :: forall e. FFTElt e
-    => Mode
-    -> DIM2
-    -> Acc (Array DIM2 (Complex e))
-    -> Acc (Array DIM2 (Complex e))
-fft1D_2r' mode (Z :. height :. width) arr
-  = let sign    = signOfMode mode :: e
-        scale   = A.fromIntegral (indexHead (shape arr))
-        go      =
-#ifdef ACCELERATE_LLVM_NATIVE_BACKEND
-                  foreignAcc (Native.fft1D_r mode) $
-#endif
-#ifdef ACCELERATE_LLVM_PTX_BACKEND
-                  foreignAcc (PTX.fft1D_r mode) $
-#endif
-                  fft sign (Z :. width) height
-    in
-    case mode of
-      Inverse -> A.map (/scale) (go arr)
-      _       -> go arr
-
--- | Discrete Fourier Transform of all rows in a 3D array.
---
--- The default implementation requires the row`s length to be a power of two.
--- The FFI-backed implementations ignore the Haskell-side size parameter (second
--- argument).
-
-fft1D_3r'
-    :: forall e. FFTElt e
-    => Mode
-    -> DIM3
-    -> Acc (Array DIM3 (Complex e))
-    -> Acc (Array DIM3 (Complex e))
-fft1D_3r' mode (Z :. depth :. height :. width) arr
-  = let sign    = signOfMode mode :: e
-        scale   = A.fromIntegral (indexHead (shape arr))
-        go      =
-#ifdef ACCELERATE_LLVM_NATIVE_BACKEND
-                  foreignAcc (Native.fft1D_3r mode) $
-#endif
-#ifdef ACCELERATE_LLVM_PTX_BACKEND
-                  foreignAcc (PTX.fft1D_r mode) $
-#endif
-                  fft sign (Z :. depth :. height) width
-    in
-    case mode of
-      Inverse -> A.map (/scale) (go arr)
-      _       -> go arr
 
 -- Cube Transform
 -- --------------
 
 -- | Discrete Fourier Transform of a 3D array.
 --
--- The default implementation requires the array dimensions to be powers of two
--- (else error).
---
-fft3D :: FFTElt e
+fft3D :: forall e. FFTElt e
       => Mode
-      -> Array DIM3 (Complex e)
+      -> Acc (Array DIM3 (Complex e))
       -> Acc (Array DIM3 (Complex e))
 fft3D mode arr
-  = fft3D' mode (arrayShape arr) (use arr)
-
-
--- | Discrete Fourier Transform of a 3D array.
---
--- The default implementation requires the array dimensions to be powers of two.
--- The FFI-backed implementations ignore the Haskell-side size parameter (second
--- argument).
---
-fft3D' :: forall e. FFTElt e
-       => Mode
-       -> DIM3
-       -> Acc (Array DIM3 (Complex e))
-       -> Acc (Array DIM3 (Complex e))
-fft3D' mode (Z :. depth :. height :. width) arr
-  = let sign    = signOfMode mode :: e
-        scale   = A.fromIntegral (A.size arr)
+  = let scale   = A.fromIntegral (A.size arr)
         go      =
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
                   foreignAcc (Native.fft3D mode) $
@@ -250,9 +174,9 @@ fft3D' mode (Z :. depth :. height :. width) arr
 #endif
                   fft'
 
-        fft' a  = rotate3D . fft sign (Z:.depth :.height) width
-              >-> rotate3D . fft sign (Z:.height:.width)  depth
-              >-> rotate3D . fft sign (Z:.width :.depth)  height
+        fft' a  = rotate3D . fft mode
+              >-> rotate3D . fft mode
+              >-> rotate3D . fft mode
                 $ a
     in
     case mode of
@@ -273,7 +197,7 @@ rotate3D arr = backpermute sh rot arr
       let Z :. z :. y :. x = unlift ix          :: Z :. Exp Int :. Exp Int :. Exp Int
       in  index3 x z y
 
-
+{--
 -- Rank-generalised Cooley-Tuckey DFT
 --
 -- We require the innermost dimension be passed as a Haskell value because we
@@ -346,4 +270,5 @@ isPow2 :: Int -> Bool
 isPow2 0 = True
 isPow2 1 = False
 isPow2 x = x .&. (x-1) P.== 0
+--}
 

@@ -12,10 +12,10 @@
 -- Portability : non-portable (GHC extensions)
 --
 -- These transforms allow the centering of the frequency domain of a DFT such
--- that the the zero frequency is in the middle. The centering transform, when
+-- that the zero frequency is in the middle. The centering transform, when
 -- performed on the input of a DFT, will cause zero frequency to be centred in
--- the middle. The shifting transform however takes the output of a DFT to
--- give the same result. Therefore the relationship between the two is:
+-- the middle. The shifting transform however takes the output of a DFT to give
+-- the same result. Therefore the relationship between the two is:
 --
 -- > fft(center(X)) = shift(fft(X))
 --
