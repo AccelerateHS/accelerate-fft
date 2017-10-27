@@ -28,7 +28,7 @@ signOfMode m
 
 -- Mode of FFT on 2D or 3D arrays - full or row by row
 --
-data Mode_
+data Dims
   = Full
   | ByRow
   deriving (Eq, Show)

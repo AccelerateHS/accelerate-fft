@@ -91,16 +91,16 @@ liftAtoC f s =
 --
 cuFFT :: forall sh e. (Shape sh, IsFloating e)
       => Mode
-      -> Mode_
+      -> Dims
       -> Stream
       -> Array (sh:.Int) e
       -> LLVM PTX (Array (sh:.Int) e)
-cuFFT mode mode_ stream arr =
+cuFFT mode dims stream arr =
   withScalarArrayPtr arr stream $ \d_arr -> liftIO $
   withLifetime           stream $ \st    -> do
     let sh :. sz = shape arr
-    p <- case mode_ of
-           Full -> plan (sh :. sz `quot` 2) (undefined::e)  -- recall this is an array of packed (Vec2 e)
+    p <- case dims of
+           Full  -> plan  (sh :. sz `quot` 2) (undefined::e)  -- recall this is an array of packed (Vec2 e)
            ByRow -> plan' (sh :. sz `quot` 2) (undefined::e)
     FFT.setStream p st
     case floatingType :: FloatingType e of
@@ -198,7 +198,6 @@ plan (shapeToList -> sh) _ =
 -- | Generate an execute plan for "row-by-row" for a given type and size of FFT. These plans are
 -- cached so that subsequent invocations are quicker.
 --
-
 plan' :: forall sh e. (Shape sh, IsFloating e) => sh -> e -> IO FFT.Handle
 plan' (shapeToList -> sh) _ =
   modifyMVar fft_plans $ \ps ->
@@ -208,7 +207,7 @@ plan' (shapeToList -> sh) _ =
         let asize = foldr1 (*) sh
         p <- case sh of
               (w:_:_) -> FFT.planMany [w] (Just ([0],1,w)) (Just ([0],1,w)) ty (asize `div` w)
-              _ -> error "Array dimension must be > 1"
+              _       -> error "Array dimension must be > 1"
         return (((ty,sh),p) : ps, p)
   where
     ty = case floatingType :: FloatingType e of
