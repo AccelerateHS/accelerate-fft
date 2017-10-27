@@ -82,8 +82,8 @@ fft1D_r mode
     go = FFT.dftGU (signOf mode) flags [1]
 
 fft1D_3r :: forall e. (Elt e, IsFloating e)
-        => Mode
-        -> ForeignAcc (Array DIM3 (Complex e) -> Array DIM3 (Complex e))
+         => Mode
+         -> ForeignAcc (Array DIM3 (Complex e) -> Array DIM3 (Complex e))
 fft1D_3r mode
   = ForeignAcc (nameOf mode (undefined::DIM1))
   $ case floatingType :: FloatingType e of
