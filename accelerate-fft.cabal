@@ -1,6 +1,6 @@
 Name:                   accelerate-fft
 Version:                1.2.0.0
-Cabal-version:          >= 1.6
+Cabal-version:          >= 1.8
 Tested-with:            GHC >= 7.10
 Build-type:             Simple
 
@@ -36,16 +36,16 @@ extra-source-files:
     cubits/twine_f32.cu
     cubits/twine_f64.cu
 
-Flag llvm-ptx
+flag llvm-ptx
   Description:          Use CUFFT-based implementation in the LLVM.PTX backend
   Default:              True
 
-Flag llvm-cpu
+flag llvm-cpu
   Description:          Use FFTW-based implementation in the LLVM.Native backend
   Default:              True
 
 
-Library
+library
   build-depends:
         base                    >= 4.7  && < 4.11
       , accelerate              >= 1.0  && < 1.3
@@ -96,14 +96,70 @@ Library
   --
   -- Extensions:
 
-Source-repository head
+
+test-suite test-fft-llvm-native
+  type:                 exitcode-stdio-1.0
+  hs-source-dirs:       test
+  main-is:              TestNative.hs
+  ghc-options:          -main-is TestNative
+
+  if !flag(llvm-cpu)
+    buildable: False
+
+  build-depends:
+        base                    >= 4.7  && < 4.11
+      , accelerate
+      , accelerate-fft
+      , accelerate-llvm-native
+      , hedgehog                >= 0.5
+      , tasty                   >= 0.11
+      , tasty-hedgehog          >= 0.1
+
+  ghc-options:
+        -Wall
+        -threaded
+        -rtsopts
+
+  other-modules:
+      Test.FFT
+      Test.ShowType
+
+
+test-suite test-fft-llvm-ptx
+  type:                 exitcode-stdio-1.0
+  hs-source-dirs:       test
+  main-is:              TestPTX.hs
+  ghc-options:          -main-is TestPTX
+
+  if !flag(llvm-ptx)
+    buildable: False
+
+  build-depends:
+        base                    >= 4.7  && < 4.11
+      , accelerate
+      , accelerate-fft
+      , accelerate-llvm-ptx
+      , hedgehog                >= 0.5
+      , tasty                   >= 0.11
+      , tasty-hedgehog          >= 0.1
+
+  ghc-options:
+        -Wall
+        -threaded
+        -rtsopts
+
+  other-modules:
+      Test.FFT
+      Test.ShowType
+
+
+source-repository head
   Type:                 git
   Location:             git://github.com/AccelerateHS/accelerate-fft.git
 
-Source-repository this
+source-repository this
   Type:                 git
   Tag:                  1.2.0.0
   Location:             git://github.com/AccelerateHS/accelerate-fft.git
 
 -- vim: nospell
-

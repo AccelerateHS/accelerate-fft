@@ -8,7 +8,7 @@ packages:
 
 - location:
     git:    https://github.com/tmcdonell/accelerate.git
-    commit: 2bca368b693cd204ab49b0a3f6d0e22212b6580a
+    commit: fd4f5c3c5e2bb9fe476081349d6b6da8cffd1b3f
   extra-dep: true
 
 - location:
@@ -29,15 +29,18 @@ extra-deps:
 - 'cabal-doctest-1.0.2'
 - 'chaselev-deque-0.5.0.5'
 - 'cuda-0.8.0.0'
-- 'cuda-0.8.0.0'
 - 'cufft-0.8.0.0'
-- 'cufft-0.8.0.0'
+- 'hedgehog-0.5'
 - 'libffi-0.1'
 - 'llvm-hs-4.2.0'
 - 'llvm-hs-pure-4.1.0.0'
 - 'nvvm-0.8.0.0'
 - 'process-1.4.3.0'
+- 'tasty-hedgehog-0.1.0.1'
+- 'transformers-0.5.5.0'
+- 'transformers-compat-0.5.1.4'
 - 'unique-0'
+- 'wl-pprint-annotated-0.1.0.0'
 
 # Override default flag values for local packages and extra-deps
 flags:
