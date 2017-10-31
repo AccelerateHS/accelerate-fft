@@ -84,7 +84,7 @@ fft1D_2r mode arr
         scale   = A.fromIntegral (indexHead (shape arr))
         go      =
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
-                  foreignAcc (Native.fft1D_r mode) $
+                  foreignAcc (Native.fft1D_2r mode) $
 #endif
 #ifdef ACCELERATE_LLVM_PTX_BACKEND
                   foreignAcc (PTX.fft1D_r mode) $
