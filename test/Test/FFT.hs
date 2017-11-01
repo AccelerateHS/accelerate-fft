@@ -33,11 +33,11 @@ import Hedgehog
 import qualified Hedgehog.Gen                                       as Gen
 import qualified Hedgehog.Range                                     as Range
 
-import Data.Proxy
-import Prelude                                                      as P hiding ( reverse )
-
 import Test.Tasty
 import Test.Tasty.Hedgehog
+
+import Data.Proxy
+import Prelude                                                      as P hiding ( reverse )
 
 
 -- type Run  = forall a. Arrays a => Acc a -> a
