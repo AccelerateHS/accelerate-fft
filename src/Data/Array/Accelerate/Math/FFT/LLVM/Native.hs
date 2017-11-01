@@ -17,9 +17,8 @@
 
 module Data.Array.Accelerate.Math.FFT.LLVM.Native (
 
+  fft,
   fft1D,
-  fft1D_2r,
-  fft1D_3r,
   fft2D,
   fft3D,
 
@@ -28,12 +27,13 @@ module Data.Array.Accelerate.Math.FFT.LLVM.Native (
 import Data.Array.Accelerate.Math.FFT.Mode
 
 import Data.Array.Accelerate                                        as A
-import Data.Array.Accelerate.Type                                   as A
-import Data.Array.Accelerate.Array.Sugar                            as S
-import Data.Array.Accelerate.Error                                  as A
+import Data.Array.Accelerate.Analysis.Match                         as A
 import Data.Array.Accelerate.Array.Data                             as A
+import Data.Array.Accelerate.Array.Sugar                            as S
 import Data.Array.Accelerate.Array.Unique                           as A
 import Data.Array.Accelerate.Data.Complex                           as A
+import Data.Array.Accelerate.Error                                  as A
+import Data.Array.Accelerate.Type                                   as A
 
 import Data.Array.Accelerate.LLVM.Native.Foreign
 
@@ -49,8 +49,32 @@ import Foreign.Storable
 import Foreign.Storable.Complex                                     ()
 
 import Data.Bits
+import Data.Typeable
 import Text.Printf
 import Prelude                                                      as P
+
+
+fft :: forall sh e. (Shape sh, Elt e, IsFloating e)
+    => Mode
+    -> ForeignAcc (Array sh (Complex e) -> Array sh (Complex e))
+fft mode
+  = ForeignAcc (nameOf mode (undefined::sh))
+  $ case floatingType :: FloatingType e of
+      TypeFloat{}   -> liftIO . go
+      TypeDouble{}  -> liftIO . go
+      TypeCFloat{}  -> liftIO . go
+      TypeCDouble{} -> liftIO . go
+  where
+    go :: (ArrayPtrs e ~ Ptr r, FFTWReal r) => Array sh (Complex e) -> IO (Array sh (Complex e))
+    go | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM1) = liftAtoC (FFT.dftGU (signOf mode) flags [0] `ix` (undefined :: Int))
+       | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM2) = liftAtoC (FFT.dftGU (signOf mode) flags [1] `ix` (undefined :: (Int,Int)))
+       | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM3) = liftAtoC (FFT.dftGU (signOf mode) flags [2] `ix` (undefined :: (Int,Int,Int)))
+       | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM4) = liftAtoC (FFT.dftGU (signOf mode) flags [3] `ix` (undefined :: (Int,Int,Int,Int)))
+       | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM5) = liftAtoC (FFT.dftGU (signOf mode) flags [4] `ix` (undefined :: (Int,Int,Int,Int,Int)))
+       | otherwise = $internalError "fft" "only for 1D..5D inner-dimension transforms"
+    --
+    ix :: (a i r -> a i r) -> i -> (a i r -> a i r)
+    ix f _ = f
 
 
 fft1D :: forall e. (Elt e, IsFloating e)
@@ -66,34 +90,6 @@ fft1D mode
   where
     go :: FFTWReal r => CArray Int (Complex r) -> CArray Int (Complex r)
     go = FFT.dftGU (signOf mode) flags [0]
-
-fft1D_2r :: forall e. (Elt e, IsFloating e)
-         => Mode
-         -> ForeignAcc (Array DIM2 (Complex e) -> Array DIM2 (Complex e))
-fft1D_2r mode
-  = ForeignAcc (nameOf mode (undefined::DIM1))
-  $ case floatingType :: FloatingType e of
-      TypeFloat{}   -> liftIO . liftAtoC go
-      TypeDouble{}  -> liftIO . liftAtoC go
-      TypeCFloat{}  -> liftIO . liftAtoC go
-      TypeCDouble{} -> liftIO . liftAtoC go
-  where
-    go :: FFTWReal r => CArray (Int,Int) (Complex r) -> CArray (Int,Int) (Complex r)
-    go = FFT.dftGU (signOf mode) flags [1]
-
-fft1D_3r :: forall e. (Elt e, IsFloating e)
-         => Mode
-         -> ForeignAcc (Array DIM3 (Complex e) -> Array DIM3 (Complex e))
-fft1D_3r mode
-  = ForeignAcc (nameOf mode (undefined::DIM1))
-  $ case floatingType :: FloatingType e of
-      TypeFloat{}   -> liftIO . liftAtoC go
-      TypeDouble{}  -> liftIO . liftAtoC go
-      TypeCFloat{}  -> liftIO . liftAtoC go
-      TypeCDouble{} -> liftIO . liftAtoC go
-  where
-    go :: FFTWReal r => CArray (Int,Int,Int) (Complex r) -> CArray (Int,Int,Int) (Complex r)
-    go = FFT.dftGU (signOf mode) flags [2]
 
 
 fft2D :: forall e. (Elt e, IsFloating e)
@@ -282,4 +278,19 @@ withArrayData ArrayEltRcfloat  (AD_CFloat  ua) = withUniqueArrayPtr ua
 withArrayData ArrayEltRcdouble (AD_CDouble ua) = withUniqueArrayPtr ua
 withArrayData _ _ =
   $internalError "withArrayData" "expected array of [C]Float or [C]Double"
+
+
+-- Match reified shape types
+--
+matchShapeType
+    :: forall sh sh'. (Shape sh, Shape sh')
+    => sh
+    -> sh'
+    -> Maybe (sh :~: sh')
+matchShapeType _ _
+  | Just Refl <- matchTupleType (eltType (undefined::sh)) (eltType (undefined::sh'))
+  = gcast Refl
+
+matchShapeType _ _
+  = Nothing
 

@@ -2,6 +2,7 @@
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
@@ -18,8 +19,8 @@
 
 module Data.Array.Accelerate.Math.FFT.LLVM.PTX (
 
+  fft,
   fft1D,
-  fft1D_r,
   fft2D,
   fft3D,
 
@@ -29,9 +30,10 @@ import Data.Array.Accelerate.Math.FFT.Mode
 import Data.Array.Accelerate.Math.FFT.Twine
 
 import Data.Array.Accelerate.Array.Data
-import Data.Array.Accelerate.Lifetime
 import Data.Array.Accelerate.Array.Sugar
 import Data.Array.Accelerate.Data.Complex
+import Data.Array.Accelerate.Error
+import Data.Array.Accelerate.Lifetime
 import Data.Array.Accelerate.Type
 
 import Data.Array.Accelerate.LLVM.PTX.Foreign
@@ -52,25 +54,25 @@ import Data.Typeable
 import System.IO.Unsafe
 
 
+fft :: (Shape sh, IsFloating e)
+    => Mode
+    -> ForeignAcc (Array (sh:.Int) (Complex e) -> (Array (sh:.Int) (Complex e)))
+fft mode = ForeignAcc "fft" $ liftAtoC (cuFFT False mode)
+
 fft1D :: IsFloating e
       => Mode
       -> ForeignAcc (Vector (Complex e) -> (Vector (Complex e)))
-fft1D mode = ForeignAcc "fft1D" $ liftAtoC (cuFFT mode Full)
-
-fft1D_r :: (IsFloating e, Shape sh)
-        => Mode
-        -> ForeignAcc (Array (sh :. Int) (Complex e) -> (Array (sh :. Int) (Complex e)))
-fft1D_r mode = ForeignAcc "fft1D" $ liftAtoC (cuFFT mode ByRow)
+fft1D mode = ForeignAcc "fft1D" $ liftAtoC (cuFFT True mode)
 
 fft2D :: IsFloating e
       => Mode
       -> ForeignAcc (Array DIM2 (Complex e) -> (Array DIM2 (Complex e)))
-fft2D mode = ForeignAcc "fft2D" $ liftAtoC (cuFFT mode Full)
+fft2D mode = ForeignAcc "fft2D" $ liftAtoC (cuFFT True mode)
 
 fft3D :: IsFloating e
       => Mode
       -> ForeignAcc (Array DIM3 (Complex e) -> (Array DIM3 (Complex e)))
-fft3D mode = ForeignAcc "fft3D" $ liftAtoC (cuFFT mode Full)
+fft3D mode = ForeignAcc "fft3D" $ liftAtoC (cuFFT True mode)
 
 
 liftAtoC
@@ -90,18 +92,21 @@ liftAtoC f s =
 -- | Call the cuFFT library to execute the FFT (inplace)
 --
 cuFFT :: forall sh e. (Shape sh, IsFloating e)
-      => Mode
-      -> Dims
+      => Bool
+      -> Mode
       -> Stream
       -> Array (sh:.Int) e
       -> LLVM PTX (Array (sh:.Int) e)
-cuFFT mode dims stream arr =
+cuFFT full mode stream arr =
   withScalarArrayPtr arr stream $ \d_arr -> liftIO $
   withLifetime           stream $ \st    -> do
-    let sh :. sz = shape arr
-    p <- case dims of
-           Full  -> plan  (sh :. sz `quot` 2) (undefined::e)  -- recall this is an array of packed (Vec2 e)
-           ByRow -> plan' (sh :. sz `quot` 2) (undefined::e)
+    let sh :. sz  = shape arr
+        sh'       = sh :. sz `quot` 2 -- recall this is an array of packed (Vec2 e)
+        r         = rank (undefined:: sh:.Int)
+    --
+    p <- if full || r == 1
+           then plan     sh' (undefined::e)
+           else planMany sh' (undefined::e)
     FFT.setStream p st
     case floatingType :: FloatingType e of
       TypeFloat{}   -> FFT.execC2C p d_arr d_arr (signOfMode mode) >> return arr
@@ -178,7 +183,7 @@ c2a stream cs | FloatingDict <- floatingDict (floatingType :: FloatingType e) = 
 --
 plan :: forall sh e. (Shape sh, IsFloating e) => sh -> e -> IO FFT.Handle
 plan (shapeToList -> sh) _ =
-  modifyMVar fft_plans $ \ps ->
+  modifyMVar __plan $ \ps ->
     case lookup (ty, sh) ps of
       Just p  -> return (ps, p)
       Nothing -> do
@@ -186,7 +191,7 @@ plan (shapeToList -> sh) _ =
                [w]     -> FFT.plan1D     w ty 1
                [w,h]   -> FFT.plan2D   h w ty
                [w,h,d] -> FFT.plan3D d h w ty
-               _       -> error "cuFFT only supports 1D, 2D, and 3D transforms"
+               _       -> $internalError "plan" "cuFFT only supports 1D, 2D, and 3D transforms"
         return (((ty,sh),p) : ps, p)
   where
     ty = case floatingType :: FloatingType e of
@@ -195,19 +200,20 @@ plan (shapeToList -> sh) _ =
            TypeCFloat{}  -> FFT.C2C
            TypeCDouble{} -> FFT.Z2Z
 
--- | Generate an execute plan for "row-by-row" for a given type and size of FFT. These plans are
--- cached so that subsequent invocations are quicker.
+-- | Generate an execution plan for the innermost dimension only for an array of
+-- the given size and element type. These plans are cached so that subsequent
+-- invocations are quicker
 --
-plan' :: forall sh e. (Shape sh, IsFloating e) => sh -> e -> IO FFT.Handle
-plan' (shapeToList -> sh) _ =
-  modifyMVar fft_plans $ \ps ->
-    case lookup (ty, sh) ps of
+planMany :: forall sh e. (Shape sh, IsFloating e) => sh -> e -> IO FFT.Handle
+planMany (shapeToList -> sh) _ =
+  modifyMVar __planMany $ \ps ->
+    case lookup (ty,sh) ps of
       Just p  -> return (ps, p)
       Nothing -> do
-        let asize = foldr1 (*) sh
         p <- case sh of
-              (w:_:_) -> FFT.planMany [w] (Just ([0],1,w)) (Just ([0],1,w)) ty (asize `div` w)
-              _       -> error "Array dimension must be > 1"
+               [w,h]   -> FFT.planMany   [h,w] Nothing Nothing ty 1
+               [w,h,d] -> FFT.planMany [d,h,w] Nothing Nothing ty 1
+               _       -> $internalError "planMany" "only for 2D and 3D inner-dimension transforms"
         return (((ty,sh),p) : ps, p)
   where
     ty = case floatingType :: FloatingType e of
@@ -221,7 +227,7 @@ plan' (shapeToList -> sh) _ =
 --
 twine :: Int -> IO CUDA.Module
 twine bitsize = do
-  ctx <- fromMaybe (error "could not determine current CUDA context") `fmap` CUDA.get
+  ctx <- fromMaybe ($internalError "twine" "could not determine CUDA context") `fmap` CUDA.get
   modifyMVar ptx_twine_modules $ \ms -> do
     case lookup (bitsize,ctx) ms of
       Just m  -> return (ms, m)
@@ -229,7 +235,7 @@ twine bitsize = do
         m <- CUDA.loadData $ case bitsize of
                                4 -> ptx_twine_f32
                                8 -> ptx_twine_f64
-                               _ -> error "cuFFT only supports Float and Double"
+                               _ -> $internalError "twine" "cuFFT only supports Float and Double"
         return (((bitsize,ctx), m) : ms, m)
 
 
@@ -286,9 +292,18 @@ type instance DevicePtrs CDouble = DevicePtr Double
 
 
 -- Cache the FFT planning step for faster repeat evaluations.
-{-# NOINLINE fft_plans #-}
-fft_plans :: MVar [((FFT.Type, [Int]), FFT.Handle)]
-fft_plans = unsafePerformIO $ do
+{-# NOINLINE __plan #-}
+__plan :: MVar [((FFT.Type, [Int]), FFT.Handle)]
+__plan = unsafePerformIO $ do
+  mv <- newMVar []
+  _  <- mkWeakMVar mv
+      $ withMVar mv
+      $ mapM_ (\(_,p) -> FFT.destroy p)
+  return mv
+
+{-# NOINLINE __planMany #-}
+__planMany :: MVar [((FFT.Type, [Int]), FFT.Handle)]
+__planMany = unsafePerformIO $ do
   mv <- newMVar []
   _  <- mkWeakMVar mv
       $ withMVar mv

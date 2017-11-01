@@ -8,7 +8,7 @@ packages:
 
 - location:
     git:    https://github.com/tmcdonell/accelerate.git
-    commit: 2bca368b693cd204ab49b0a3f6d0e22212b6580a
+    commit: b73188966e43c4279cf7522d9309f2d90f86eb12
   extra-dep: true
 
 - location:
@@ -29,6 +29,7 @@ extra-deps:
 - 'cuda-0.8.0.0'
 - 'cufft-0.8.0.0'
 - 'nvvm-0.8.0.0'
+- 'tasty-hedgehog-0.1.0.1'
 
 # Override default flag values for local packages and extra-deps
 flags: {}
