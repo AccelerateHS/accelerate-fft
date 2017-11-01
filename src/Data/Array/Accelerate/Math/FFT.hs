@@ -26,7 +26,9 @@ module Data.Array.Accelerate.Math.FFT (
 
   Mode(..),
   FFTElt,
-  fft1D, fft1D_2r, fft1D_3r,
+  fft,
+
+  fft1D,
   fft2D,
   fft3D,
 
@@ -34,9 +36,10 @@ module Data.Array.Accelerate.Math.FFT (
 
 import Data.Array.Accelerate                                        as A
 import Data.Array.Accelerate.Data.Complex
-import Data.Array.Accelerate.Math.FFT.Adhoc
 import Data.Array.Accelerate.Math.FFT.Elt
 import Data.Array.Accelerate.Math.FFT.Mode
+import qualified Data.Array.Accelerate.Array.Sugar                  as A ( rank )
+import qualified Data.Array.Accelerate.Math.FFT.Adhoc               as Adhoc
 
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
 import qualified Data.Array.Accelerate.Math.FFT.LLVM.Native         as Native
@@ -44,6 +47,39 @@ import qualified Data.Array.Accelerate.Math.FFT.LLVM.Native         as Native
 #ifdef ACCELERATE_LLVM_PTX_BACKEND
 import qualified Data.Array.Accelerate.Math.FFT.LLVM.PTX            as PTX
 #endif
+
+import Prelude                                                      as P
+
+
+-- | Discrete Fourier Transform along the innermost dimension of an array.
+--
+-- Notes for FFI implementations:
+--
+--   * fftw supports arrays of dimension 1-5
+--   * cuFFT supports arrays of dimension 1-3
+--
+-- The pure implementation will be used otherwise.
+--
+fft :: forall sh e. (Shape sh, Slice sh, FFTElt e)
+    => Mode
+    -> Acc (Array (sh:.Int) (Complex e))
+    -> Acc (Array (sh:.Int) (Complex e))
+fft mode arr
+  = let
+        scale = A.fromIntegral (indexHead (shape arr))
+        rank  = A.rank (undefined :: sh:.Int)
+        go    =
+#ifdef ACCELERATE_LLVM_NATIVE_BACKEND
+                  (if rank P.<= 5 then foreignAcc (Native.fft mode) else id) $
+#endif
+#ifdef ACCELERATE_LLVM_PTX_BACKEND
+                  (if rank P.<= 3 then foreignAcc (PTX.fft    mode) else id) $
+#endif
+                  Adhoc.fft mode
+    in
+    case mode of
+      Inverse -> A.map (/scale) (go arr)
+      _       -> go arr
 
 
 -- Vector Transform
@@ -65,13 +101,14 @@ fft1D mode arr
 #ifdef ACCELERATE_LLVM_PTX_BACKEND
                   foreignAcc (PTX.fft1D mode) $
 #endif
-                  fft mode
+                  Adhoc.fft mode
     in
     case mode of
       Inverse -> A.map (/scale) (go arr)
       _       -> go arr
 
 
+{--
 -- | Discrete Fourier Transform of all rows in a matrix.
 --
 fft1D_2r
@@ -122,7 +159,7 @@ fft1D_3r mode arr
     case mode of
       Inverse -> A.map (/scale) (go arr)
       _       -> go arr
-
+--}
 
 -- Matrix Transform
 -- ----------------
@@ -145,8 +182,8 @@ fft2D mode arr
 #endif
                   fft'
 
-        fft' a  = A.transpose . fft mode
-              >-> A.transpose . fft mode
+        fft' a  = A.transpose . Adhoc.fft mode
+              >-> A.transpose . Adhoc.fft mode
                 $ a
     in
     case mode of
@@ -174,9 +211,9 @@ fft3D mode arr
 #endif
                   fft'
 
-        fft' a  = rotate3D . fft mode
-              >-> rotate3D . fft mode
-              >-> rotate3D . fft mode
+        fft' a  = rotate3D . Adhoc.fft mode
+              >-> rotate3D . Adhoc.fft mode
+              >-> rotate3D . Adhoc.fft mode
                 $ a
     in
     case mode of

@@ -97,7 +97,7 @@ library
   -- Extensions:
 
 
-test-suite test-fft-llvm-native
+test-suite test-llvm-native
   type:                 exitcode-stdio-1.0
   hs-source-dirs:       test
   main-is:              TestNative.hs
@@ -125,7 +125,7 @@ test-suite test-fft-llvm-native
       Test.ShowType
 
 
-test-suite test-fft-llvm-ptx
+test-suite test-llvm-ptx
   type:                 exitcode-stdio-1.0
   hs-source-dirs:       test
   main-is:              TestPTX.hs

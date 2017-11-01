@@ -19,7 +19,7 @@ module Test.FFT ( testFFT )
 
 import Test.ShowType
 
-import Data.Array.Accelerate                                        ( Shape, Slice, Elt, Array, Acc, Exp, (:.)(..) )
+import Data.Array.Accelerate                                        ( Shape, Slice, Elt, Array, Acc, Exp, (:.)(..), DIM2 )
 import Data.Array.Accelerate.Trafo                                  ( Afunction, AfunctionR )
 import Data.Array.Accelerate.Array.Sugar                            ( rank )
 import Data.Array.Accelerate.Data.Complex
@@ -201,7 +201,7 @@ testFFT runN =
     ]
 
 testFFT'
-    :: (FFTElt e, Similar e, RealFloat e, Show (ArgType e))
+    :: forall e. (FFTElt e, Similar e, RealFloat e, Show (ArgType e))
     => Proxy e
     -> RunN
     -> TestTree
@@ -220,19 +220,19 @@ testFFT' e runN =
       [ testProperty "homogeneity" $ test_homogeneity e runN fft2D
       , testProperty "additivity"  $ test_additivity  e runN fft2D
       , testProperty "inverse"     $ test_inverse     e runN fft2D
-      , testProperty "reverse"     $ test_reverse     e runN fft1D_2r
-      , testProperty "conjugate"   $ test_conjugate   e runN fft1D_2r
-      , testProperty "isometry"    $ test_isometry    e runN fft1D_2r
-      , testProperty "unitarity"   $ test_unitarity   e runN fft1D_2r
+      , testProperty "reverse"     $ test_reverse     e runN (fft :: Transform DIM2 (Complex e))
+      , testProperty "conjugate"   $ test_conjugate   e runN (fft :: Transform DIM2 (Complex e))
+      , testProperty "isometry"    $ test_isometry    e runN (fft :: Transform DIM2 (Complex e))
+      , testProperty "unitarity"   $ test_unitarity   e runN (fft :: Transform DIM2 (Complex e))
       ]
     -- , testGroup "DIM3"
     --   [ testProperty "homogeneity" $ test_homogeneity e runN fft3D
     --   , testProperty "additivity"  $ test_additivity  e runN fft3D
     --   , testProperty "inverse"     $ test_inverse     e runN fft3D
-    --   , testProperty "reverse"     $ test_reverse     e runN fft1D_3r
-    --   , testProperty "conjugate"   $ test_conjugate   e runN fft1D_3r
-    --   , testProperty "isometry"    $ test_isometry    e runN fft1D_3r
-    --   , testProperty "unitarity"   $ test_unitarity   e runN fft1D_3r
+    --   , testProperty "reverse"     $ test_reverse     e runN (fft :: Transform DIM3 (Complex e))
+    --   , testProperty "conjugate"   $ test_conjugate   e runN (fft :: Transform DIM3 (Complex e))
+    --   , testProperty "isometry"    $ test_isometry    e runN (fft :: Transform DIM3 (Complex e))
+    --   , testProperty "unitarity"   $ test_unitarity   e runN (fft :: Transform DIM3 (Complex e))
     --   ]
     ]
 
