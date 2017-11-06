@@ -1,24 +1,29 @@
 # For more information, see: https://github.com/commercialhaskell/stack/blob/release/doc/yaml_configuration.md
 # vim: nospell
 
-resolver: nightly-2017-10-28
+resolver: nightly-2017-11-01
 
 packages:
 - '.'
 
 - location:
     git:    https://github.com/tmcdonell/accelerate.git
-    commit: b73188966e43c4279cf7522d9309f2d90f86eb12
+    commit: 216538e42140a70fb8f5e4d3c0f045c33e5babfe
   extra-dep: true
 
 - location:
     git:    https://github.com/tmcdonell/accelerate-llvm.git
-    commit: ed24942cdebfdab34c8214296d85cc08f3111e43
+    commit: 6f423e6b9379feab174297d3cc558e5210db8068
   extra-dep: true
   subdirs:
     - accelerate-llvm
     - accelerate-llvm-native
     - accelerate-llvm-ptx
+
+- location:
+    git:    https://github.com/tmcdonell/cuda.git
+    commit: 4272d6e2fdcfefdd6798d81c7af8aff6dc050b1a
+  extra-dep: true
 
 extra-deps: []
 
