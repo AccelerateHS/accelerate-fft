@@ -113,7 +113,10 @@ script:
         travis_retry cabal haddock || exit 1
       else
         travis_retry stack build --test --no-run-tests --fast --no-terminal --haddock --no-haddock-deps || exit 1
-        travis_retry stack test accelerate-fft:test-llvm-native 2>/dev/null || exit 1
+        case ${GHC} in
+          7.*) true ;; # some tests failing with 'RTLD_NEXT not available' (dlsym error)
+          *  ) travis_retry stack test accelerate-fft:test-llvm-native 2>/dev/null || exit 1 ;;
+        esac
       fi
 
 after_success:
