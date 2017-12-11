@@ -83,12 +83,19 @@ library
     build-depends:
         accelerate-llvm         >= 1.0  && < 1.3
       , accelerate-llvm-ptx     >= 1.0  && < 1.3
+      , containers              >= 0.5
+      , hashable                >= 1.0
+      , unordered-containers    >= 0.2
       , cuda                    >= 0.5
       , cufft                   >= 0.1.2
       , file-embed              >= 0.0.10
+      , mtl                     >= 2.2
 
     other-modules:
       Data.Array.Accelerate.Math.FFT.LLVM.PTX
+      Data.Array.Accelerate.Math.FFT.LLVM.PTX.Base
+      Data.Array.Accelerate.Math.FFT.LLVM.PTX.Plans
+      Data.Array.Accelerate.Math.FFT.LLVM.PTX.Twine
 
   -- Don't add the extensions list here. Instead, place individual LANGUAGE
   -- pragmas in the files that require a specific extension. This means the
