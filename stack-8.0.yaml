@@ -8,22 +8,17 @@ packages:
 
 - location:
     git:    https://github.com/tmcdonell/accelerate.git
-    commit: 216538e42140a70fb8f5e4d3c0f045c33e5babfe
+    commit: b8dc2e258f44e704dd172306a53aeefb5ba1dd68
   extra-dep: true
 
 - location:
     git:    https://github.com/tmcdonell/accelerate-llvm.git
-    commit: a329e73cf0ba8413ecb961c3eda9e0c07aee2650
+    commit: 0b2ee7a787e5542d21337cca7af01ad6558bdd19
   extra-dep: true
   subdirs:
     - accelerate-llvm
     - accelerate-llvm-native
     - accelerate-llvm-ptx
-
-- location:
-    git:    https://github.com/tmcdonell/cuda.git
-    commit: 4272d6e2fdcfefdd6798d81c7af8aff6dc050b1a
-  extra-dep: true
 
 extra-deps:
 # - 'accelerate-1.1.0.0'
@@ -31,9 +26,9 @@ extra-deps:
 # - 'accelerate-llvm-native-1.1.0.0'
 # - 'accelerate-llvm-ptx-1.1.0.0'
 - 'Cabal-2.0.0.2'
-- 'cuda-0.8.0.0'
+- 'cuda-0.9.0.0'
 - 'cufft-0.8.0.0'
-- 'nvvm-0.8.0.0'
+- 'nvvm-0.8.0.1'
 - 'tasty-hedgehog-0.1.0.1'
 
 # Override default flag values for local packages and extra-deps
