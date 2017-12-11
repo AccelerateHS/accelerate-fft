@@ -51,83 +51,57 @@ fft :: forall sh e. (Shape sh, IsFloating e)
     => Mode
     -> ForeignAcc (Array (sh:.Int) (Complex e) -> Array (sh:.Int) (Complex e))
 fft mode
-  | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM0)
-  = fft1D mode
-
-  | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM1)
-  = ForeignAcc "cuda.fft2.many"
-  $ case floatingType :: FloatingType e of
-      TypeFloat{}   -> fft' fft2DMany_plans mode
-      TypeDouble{}  -> fft' fft2DMany_plans mode
-      TypeCFloat{}  -> fft' fft2DMany_plans mode
-      TypeCDouble{} -> fft' fft2DMany_plans mode
-
-  | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM2)
-  = ForeignAcc "cuda.fft3.many"
-  $ case floatingType :: FloatingType e of
-      TypeFloat{}   -> fft' fft3DMany_plans mode
-      TypeDouble{}  -> fft' fft3DMany_plans mode
-      TypeCFloat{}  -> fft' fft3DMany_plans mode
-      TypeCDouble{} -> fft' fft3DMany_plans mode
-
-  | otherwise
-  = $internalError "fft" "only for 1D..3D inner-dimension transforms"
-
+  | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM0) = fft1D mode
+  | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM1) = ForeignAcc "cuda.fft2.many" $ fft' fft2DMany_plans mode
+  | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM2) = ForeignAcc "cuda.fft3.many" $ fft' fft3DMany_plans mode
+  | otherwise = $internalError "fft" "only for 1D..3D inner-dimension transforms"
 
 fft1D :: forall e. IsFloating e
       => Mode
       -> ForeignAcc (Vector (Complex e) -> Vector (Complex e))
-fft1D mode
-  = ForeignAcc "cuda.fft1d"
-  $ case floatingType :: FloatingType e of
-      TypeFloat{}   -> fft' fft1D_plans mode
-      TypeDouble{}  -> fft' fft1D_plans mode
-      TypeCFloat{}  -> fft' fft1D_plans mode
-      TypeCDouble{} -> fft' fft1D_plans mode
+fft1D mode = ForeignAcc "cuda.fft1d" $ fft' fft1D_plans mode
 
 fft2D :: forall e. IsFloating e
       => Mode
       -> ForeignAcc (Array DIM2 (Complex e) -> Array DIM2 (Complex e))
-fft2D mode
-  = ForeignAcc "cuda.fft2d"
-  $ case floatingType :: FloatingType e of
-      TypeFloat{}   -> fft' fft2D_plans mode
-      TypeDouble{}  -> fft' fft2D_plans mode
-      TypeCFloat{}  -> fft' fft2D_plans mode
-      TypeCDouble{} -> fft' fft2D_plans mode
+fft2D mode = ForeignAcc "cuda.fft2d" $ fft' fft2D_plans mode
 
 fft3D :: forall e. IsFloating e
       => Mode
       -> ForeignAcc (Array DIM3 (Complex e) -> Array DIM3 (Complex e))
-fft3D mode
-  = ForeignAcc "cuda.fft3d"
-  $ case floatingType :: FloatingType e of
-      TypeFloat{}   -> fft' fft3D_plans mode
-      TypeDouble{}  -> fft' fft3D_plans mode
-      TypeCFloat{}  -> fft' fft3D_plans mode
-      TypeCDouble{} -> fft' fft3D_plans mode
+fft3D mode = ForeignAcc "cuda.fft3d" $ fft' fft3D_plans mode
 
 
 -- Internals
 -- ---------
 
-fft' :: forall sh e a. (Shape sh, Elt e, IsFloating e, DevicePtrs e ~ DevicePtr a)
+fft' :: forall sh e. (Shape sh, IsFloating e)
      => Plans (sh, FFT.Type)
      -> Mode
      -> Stream
      -> Array sh (Complex e)
      -> LLVM PTX (Array sh (Complex e))
-fft' plans mode stream arr = do
+fft' plans mode stream =
   let
-      sh = shape arr
-      t  = fftType (Proxy::Proxy e)
-  --
-  r <- allocateRemote sh
-  interleave arr stream   $ \d_cplx -> do
-    withPlan plans (sh,t) $ \h      -> do
-      liftIO $ cuFFT (Proxy::Proxy e) h mode stream d_cplx
-      deinterleave r d_cplx stream
-      return r
+      go :: (Elt e, DevicePtrs e ~ DevicePtr a) => Array sh (Complex e) -> LLVM PTX (Array sh (Complex e))
+      go arr = do
+        let
+            sh = shape arr
+            t  = fftType (Proxy::Proxy e)
+        --
+        r <- allocateRemote sh
+        interleave arr stream   $ \d_cplx -> do
+          withPlan plans (sh,t) $ \h      -> do
+            liftIO $ cuFFT (Proxy::Proxy e) h mode stream d_cplx
+            deinterleave r d_cplx stream
+            return r
+  in
+  case floatingType :: FloatingType e of
+    TypeFloat{}   -> go
+    TypeDouble{}  -> go
+    TypeCFloat{}  -> go
+    TypeCDouble{} -> go
+
 
 -- Execute the FFT (inplace)
 --
