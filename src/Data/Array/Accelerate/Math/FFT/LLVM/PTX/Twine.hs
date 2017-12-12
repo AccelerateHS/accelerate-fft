@@ -36,7 +36,6 @@ import Control.Monad.State
 import Data.ByteString                                              ( ByteString )
 import Data.FileEmbed
 import Data.IntMap.Strict                                           ( IntMap )
-import Foreign.Storable.Complex                                     ( )
 import System.IO.Unsafe
 import qualified Data.IntMap.Strict                                 as IM
 
@@ -67,40 +66,6 @@ interleave arr s k = do
           liftIO $ launch pack s' n d_cplx d_re d_im
         k (CUDA.castDevPtr d_cplx)
 
-{--
-  case floatingType :: FloatingType e of
-    tR@TypeFloat{} -> do
-      cplx <- allocateRemote (Z :. n * 2) :: LLVM PTX (Vector Float)
-      withTwine tR                $ \(_,pack,_) -> do
-        withScalarArrayPtr cplx s $ \d_cplx     -> do
-          withLifetime' s         $ \s'         -> do
-            liftIO $ launch pack s' n d_cplx d_re d_im
-          k (CUDA.castDevPtr d_cplx :: DevicePtr (Complex Float))
-    --
-    tR@TypeDouble{} -> do
-      cplx <- allocateRemote (Z :. n * 2) :: LLVM PTX (Vector Double)
-      withTwine tR                $ \(_,pack,_) -> do
-        withScalarArrayPtr cplx s $ \d_cplx     -> do
-          withLifetime' s         $ \s'         -> do
-            liftIO $ launch pack s' n d_cplx d_re d_im
-          k (CUDA.castDevPtr d_cplx :: DevicePtr (Complex Double))
-    --
-    tR@TypeCFloat{} -> do
-      cplx <- allocateRemote (Z :. n * 2) :: LLVM PTX (Vector CFloat)
-      withTwine tR                $ \(_,pack,_) -> do
-        withScalarArrayPtr cplx s $ \d_cplx     -> do
-          withLifetime' s         $ \s'         -> do
-            liftIO $ launch pack s' n d_cplx d_re d_im
-          k (CUDA.castDevPtr d_cplx :: DevicePtr (Complex CFloat))
-    --
-    tR@TypeCDouble{} -> do
-      cplx <- allocateRemote (Z :. n * 2) :: LLVM PTX (Vector CDouble)
-      withTwine tR                $ \(_,pack,_) -> do
-        withScalarArrayPtr cplx s $ \d_cplx     -> do
-          withLifetime' s         $ \s'         -> do
-            liftIO $ launch pack s' n d_cplx d_re d_im
-          k (CUDA.castDevPtr d_cplx :: DevicePtr (Complex CDouble))
---}
 
 deinterleave
     :: forall sh e a. (Shape sh, IsFloating e, DevicePtrs e ~ DevicePtr a)
@@ -116,28 +81,6 @@ deinterleave arr d_cplx s = do
       withLifetime' s                         $ \s'           -> do
         liftIO $ launch unpack s' n d_re d_im d_cplx
 
-{--
-  case floatingType :: FloatingType e of
-    tR@TypeFloat{} -> do
-      withTwine tR      $ \(_,_,unpack) -> do
-        withLifetime' s $ \s'           -> do
-          liftIO $ launch unpack s' n d_re d_im (CUDA.castDevPtr d_cplx :: DevicePtr Float)
-    --
-    tR@TypeDouble{} -> do
-      withTwine tR      $ \(_,_,unpack) -> do
-        withLifetime' s $ \s'           -> do
-          liftIO $ launch unpack s' n d_re d_im (CUDA.castDevPtr d_cplx :: DevicePtr Double)
-    --
-    tR@TypeCFloat{} -> do
-      withTwine tR      $ \(_,_,unpack) -> do
-        withLifetime' s $ \s'           -> do
-          liftIO $ launch unpack s' n d_re d_im (CUDA.castDevPtr d_cplx :: DevicePtr Float)
-    --
-    tR@TypeCDouble{} -> do
-      withTwine tR      $ \(_,_,unpack) -> do
-        withLifetime' s $ \s'           -> do
-          liftIO $ launch unpack s' n d_re d_im (CUDA.castDevPtr d_cplx :: DevicePtr Double)
---}
 
 withTwine
     :: FloatingType e
