@@ -73,10 +73,20 @@ library
       , accelerate-llvm-native  >= 1.0  && < 1.3
       , carray                  >= 0.1.5
       , fft                     >= 0.1.8
-      , storable-complex        >= 0.2
 
     other-modules:
       Data.Array.Accelerate.Math.FFT.LLVM.Native
+      Data.Array.Accelerate.Math.FFT.LLVM.Native.Ix
+      Data.Array.Accelerate.Math.FFT.LLVM.Native.Twine
+
+    cc-options:
+      -O3
+      -Wall
+      -march=native
+
+    c-sources:
+      cbits/twine_f32.c
+      cbits/twine_f64.c
 
   if flag(llvm-ptx)
     cpp-options:        -DACCELERATE_LLVM_PTX_BACKEND
