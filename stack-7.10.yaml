@@ -6,25 +6,17 @@ resolver: lts-6.30
 packages:
 - '.'
 
-- location:
-    git:    https://github.com/tmcdonell/accelerate.git
-    commit: b8dc2e258f44e704dd172306a53aeefb5ba1dd68
-  extra-dep: true
+extra-deps:
+- git:    https://github.com/tmcdonell/accelerate.git
+  commit: c6d87eeec0974b6cb39ecba60628a8dd52331812
 
-- location:
-    git:    https://github.com/tmcdonell/accelerate-llvm.git
-    commit: 0b2ee7a787e5542d21337cca7af01ad6558bdd19
-  extra-dep: true
+- git:    https://github.com/tmcdonell/accelerate-llvm.git
+  commit: 62f2f658a4ae1f71e8046bbf883b7dad35401824
   subdirs:
     - accelerate-llvm
     - accelerate-llvm-native
     - accelerate-llvm-ptx
 
-extra-deps:
-# - 'accelerate-1.1.0.0'
-# - 'accelerate-llvm-1.1.0.0'
-# - 'accelerate-llvm-native-1.1.0.0'
-# - 'accelerate-llvm-ptx-1.1.0.0'
 - 'Cabal-2.0.0.2'
 - 'cabal-doctest-1.0.2'
 - 'chaselev-deque-0.5.0.5'
@@ -51,7 +43,7 @@ flags:
     semigroups: true
 
 # Extra package databases containing global packages
-extra-package-dbs: []
+# extra-package-dbs: []
 
 # Control whether we use the GHC we find on the path
 # system-ghc: true

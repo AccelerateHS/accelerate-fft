@@ -1,32 +1,27 @@
 # For more information, see: https://github.com/commercialhaskell/stack/blob/release/doc/yaml_configuration.md
 # vim: nospell
 
-resolver: nightly-2017-12-05
+resolver: lts-10.0
 
 packages:
 - '.'
 
-- location:
-    git:    https://github.com/tmcdonell/accelerate.git
-    commit: b8dc2e258f44e704dd172306a53aeefb5ba1dd68
-  extra-dep: true
+extra-deps:
+- git:    https://github.com/tmcdonell/accelerate.git
+  commit: c6d87eeec0974b6cb39ecba60628a8dd52331812
 
-- location:
-    git:    https://github.com/tmcdonell/accelerate-llvm.git
-    commit: 0b2ee7a787e5542d21337cca7af01ad6558bdd19
-  extra-dep: true
+- git:    https://github.com/tmcdonell/accelerate-llvm.git
+  commit: 62f2f658a4ae1f71e8046bbf883b7dad35401824
   subdirs:
     - accelerate-llvm
     - accelerate-llvm-native
     - accelerate-llvm-ptx
 
-# extra-deps: []
-
 # Override default flag values for local packages and extra-deps
 # flags: {}
 
 # Extra package databases containing global packages
-extra-package-dbs: []
+# extra-package-dbs: []
 
 # Control whether we use the GHC we find on the path
 # system-ghc: true
