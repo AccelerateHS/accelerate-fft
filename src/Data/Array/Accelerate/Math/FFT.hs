@@ -25,7 +25,7 @@
 module Data.Array.Accelerate.Math.FFT (
 
   Mode(..),
-  FFTElt,
+  Numeric,
   fft,
 
   fft1D,
@@ -36,7 +36,7 @@ module Data.Array.Accelerate.Math.FFT (
 
 import Data.Array.Accelerate                                        as A
 import Data.Array.Accelerate.Data.Complex
-import Data.Array.Accelerate.Math.FFT.Elt
+import Data.Array.Accelerate.Math.FFT.Type
 import Data.Array.Accelerate.Math.FFT.Mode
 import qualified Data.Array.Accelerate.Array.Sugar                  as A ( rank )
 import qualified Data.Array.Accelerate.Math.FFT.Adhoc               as Adhoc
@@ -60,7 +60,7 @@ import Prelude                                                      as P
 --
 -- The pure implementation will be used otherwise.
 --
-fft :: forall sh e. (Shape sh, Slice sh, FFTElt e)
+fft :: forall sh e. (Shape sh, Slice sh, Numeric e)
     => Mode
     -> Acc (Array (sh:.Int) (Complex e))
     -> Acc (Array (sh:.Int) (Complex e))
@@ -87,7 +87,7 @@ fft mode arr
 
 -- | Discrete Fourier Transform of a vector.
 --
-fft1D :: forall e. FFTElt e
+fft1D :: forall e. Numeric e
       => Mode
       -> Acc (Array DIM1 (Complex e))
       -> Acc (Array DIM1 (Complex e))
@@ -113,7 +113,7 @@ fft1D mode arr
 
 -- | Discrete Fourier Transform of a matrix.
 --
-fft2D :: forall e. FFTElt e
+fft2D :: forall e. Numeric e
       => Mode
       -> Acc (Array DIM2 (Complex e))
       -> Acc (Array DIM2 (Complex e))
@@ -143,7 +143,7 @@ fft2D mode arr
 
 -- | Discrete Fourier Transform of a 3D array.
 --
-fft3D :: forall e. FFTElt e
+fft3D :: forall e. Numeric e
       => Mode
       -> Acc (Array DIM3 (Complex e))
       -> Acc (Array DIM3 (Complex e))
