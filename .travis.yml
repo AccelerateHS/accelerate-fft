@@ -90,7 +90,7 @@ before_install:
   - source .travis/install-cuda-trusty.sh
   - source .travis/install-stack.sh
   - source .travis/update-ghc-settings.sh
-  - travis_retry stack install c2hs
+  - travis_retry stack install c2hs --fast --no-terminal
 
 install:
   - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
@@ -115,7 +115,7 @@ script:
         travis_retry stack build --test --no-run-tests --fast --no-terminal --haddock --no-haddock-deps || exit 1
         case ${GHC} in
           7.*) true ;; # some tests failing with 'RTLD_NEXT not available' (dlsym error)
-          *  ) travis_retry stack test accelerate-fft:test-llvm-native 2>/dev/null || exit 1 ;;
+          *  ) stack test accelerate-fft:test-llvm-native 2>/dev/null || exit 1 ;;
         esac
       fi
 
