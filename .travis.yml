@@ -14,9 +14,9 @@ cache:
     # - $HOME/llvm
     - .stack-work/install
 
-# before_cache:
+before_cache:
 #   - rm -rf $(stack path --local-install-root)/bin
-#   - rm -rf $(stack path --local-install-root)/doc
+  - rm -rf $(stack path --local-install-root)/doc
 
 addons:
   apt:
@@ -99,12 +99,11 @@ install:
   - c2hs --version
   - llc --version; true
   - opt --version; true
-  - travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --jobs=2 --no-terminal --no-haddock-deps
+  - travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --jobs=2 --no-terminal --no-haddock-deps --no-copy-bins
 
 script:
-  - true
-  # - stack build --fast --jobs=2 --test --no-run-tests --no-terminal --haddock --no-haddock-deps
-  # - stack test accelerate-fft:test-llvm-native --test-arguments='--hedgehog-tests 50' 2>/dev/null
+  - stack build --fast --jobs=2 --test --no-run-tests --no-terminal --haddock --no-haddock-deps
+  - stack test accelerate-fft:test-llvm-native --test-arguments='--hedgehog-tests 50' 2>/dev/null
 
 after_success:
   - source .travis/update-accelerate-buildbot.sh
