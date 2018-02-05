@@ -4,7 +4,7 @@
 # relevant version of LLVM as (a very old version of) the CUDA toolkit (4.0).
 # Caches the 'stack' build directory to speed subsequent compilations.
 #
-language: generic
+language: minimal
 dist: trusty
 sudo: required
 
@@ -58,7 +58,7 @@ matrix:
             - cabal-install-1.24
             - llvm-4.0-dev
 
-    - env: GHC=8.2.1 CABAL=2.0 LLVM=5.0.0 CUDA=8.0.61-1
+    - env: GHC=8.2.2 CABAL=2.0 LLVM=5.0.0 CUDA=8.0.61-1
       compiler: "GHC 8.2"
       addons:
         apt:
@@ -99,25 +99,11 @@ install:
   - c2hs --version
   - llc --version; true
   - opt --version; true
-  - |
-      if [ ${GHC} == head -o ! -e stack.yaml ]; then
-        travis_retry cabal install --only-dependencies || exit 1
-      else
-        travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --no-terminal --no-haddock-deps || exit 1
-      fi
+  - travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --jobs=2 --no-terminal --no-haddock-deps
 
 script:
-  - |
-      if [ ${GHC} == head -o ! -e stack.yaml ]; then
-        travis_retry cabal install || exit 1
-        travis_retry cabal haddock || exit 1
-      else
-        travis_retry stack build --test --no-run-tests --fast --no-terminal --haddock --no-haddock-deps || exit 1
-        case ${GHC} in
-          7.*) true ;; # some tests failing with 'RTLD_NEXT not available' (dlsym error)
-          *  ) stack test accelerate-fft:test-llvm-native 2>/dev/null || exit 1 ;;
-        esac
-      fi
+  - stack build --fast --jobs=2 --test --no-run-tests --no-terminal --haddock --no-haddock-deps
+  - stack test accelerate-fft:test-llvm-native --test-arguments='--hedgehog-tests 50' 2>/dev/null
 
 after_success:
   - source .travis/update-accelerate-buildbot.sh
