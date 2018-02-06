@@ -26,19 +26,18 @@ module Data.Array.Accelerate.Math.FFT.LLVM.PTX (
 ) where
 
 import Data.Array.Accelerate.Math.FFT.Mode
+import Data.Array.Accelerate.Math.FFT.Type
 import Data.Array.Accelerate.Math.FFT.LLVM.PTX.Base
 import Data.Array.Accelerate.Math.FFT.LLVM.PTX.Plans
-import Data.Array.Accelerate.Math.FFT.LLVM.PTX.Twine
 
 import Data.Array.Accelerate.Array.Sugar
 import Data.Array.Accelerate.Data.Complex
 import Data.Array.Accelerate.Error
 import Data.Array.Accelerate.Lifetime
-import Data.Array.Accelerate.Type
 
 import Data.Array.Accelerate.LLVM.PTX.Foreign
 
-import Foreign.CUDA.Ptr                                             ( DevicePtr )
+import Foreign.CUDA.Ptr                                             ( DevicePtr, castDevPtr )
 import qualified Foreign.CUDA.FFT                                   as FFT
 
 import Data.Hashable
@@ -47,7 +46,7 @@ import Data.Typeable
 import System.IO.Unsafe
 
 
-fft :: forall sh e. (Shape sh, IsFloating e)
+fft :: forall sh e. (Shape sh, Numeric e)
     => Mode
     -> ForeignAcc (Array (sh:.Int) (Complex e) -> Array (sh:.Int) (Complex e))
 fft mode
@@ -56,17 +55,17 @@ fft mode
   | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM2) = ForeignAcc "cuda.fft3.many" $ fft' fft3DMany_plans mode
   | otherwise = $internalError "fft" "only for 1D..3D inner-dimension transforms"
 
-fft1D :: forall e. IsFloating e
+fft1D :: Numeric e
       => Mode
       -> ForeignAcc (Vector (Complex e) -> Vector (Complex e))
 fft1D mode = ForeignAcc "cuda.fft1d" $ fft' fft1D_plans mode
 
-fft2D :: forall e. IsFloating e
+fft2D :: Numeric e
       => Mode
       -> ForeignAcc (Array DIM2 (Complex e) -> Array DIM2 (Complex e))
 fft2D mode = ForeignAcc "cuda.fft2d" $ fft' fft2D_plans mode
 
-fft3D :: forall e. IsFloating e
+fft3D :: Numeric e
       => Mode
       -> ForeignAcc (Array DIM3 (Complex e) -> Array DIM3 (Complex e))
 fft3D mode = ForeignAcc "cuda.fft3d" $ fft' fft3D_plans mode
@@ -75,7 +74,7 @@ fft3D mode = ForeignAcc "cuda.fft3d" $ fft' fft3D_plans mode
 -- Internals
 -- ---------
 
-fft' :: forall sh e. (Shape sh, IsFloating e)
+fft' :: forall sh e. (Shape sh, Numeric e)
      => Plans (sh, FFT.Type)
      -> Mode
      -> Stream
@@ -83,51 +82,46 @@ fft' :: forall sh e. (Shape sh, IsFloating e)
      -> LLVM PTX (Array sh (Complex e))
 fft' plans mode stream =
   let
-      go :: (Elt e, DevicePtrs e ~ DevicePtr a) => Array sh (Complex e) -> LLVM PTX (Array sh (Complex e))
-      go arr = do
+      go :: Numeric e => Array sh (Complex e) -> LLVM PTX (Array sh (Complex e))
+      go ain = do
         let
-            sh = shape arr
+            sh = shape ain
             t  = fftType (Proxy::Proxy e)
         --
-        r <- allocateRemote sh
-        interleave arr stream   $ \d_cplx -> do
-          withPlan plans (sh,t) $ \h      -> do
-            liftIO $ cuFFT (Proxy::Proxy e) h mode stream d_cplx
-            deinterleave r d_cplx stream
-            return r
+        aout <- allocateRemote sh
+        withArray ain stream    $ \d_in  -> do
+         withArray aout stream  $ \d_out -> do
+          withPlan plans (sh,t) $ \h     -> do
+            liftIO $ cuFFT (Proxy::Proxy e) h mode stream (castDevPtr d_in) (castDevPtr d_out)
+            return aout
   in
-  case floatingType :: FloatingType e of
-    TypeFloat{}   -> go
-    TypeDouble{}  -> go
-    TypeCFloat{}  -> go
-    TypeCDouble{} -> go
+  case numericR::NumericR e of
+    NumericRfloat32 -> go
+    NumericRfloat64 -> go
 
 
--- Execute the FFT (inplace)
+-- Execute the FFT
 --
-cuFFT :: forall e a. (IsFloating e, DevicePtrs e ~ DevicePtr a)
+cuFFT :: forall e. Numeric e
       => Proxy e
       -> FFT.Handle
       -> Mode
       -> Stream
-      -> DevicePtr a  -- packed (complex e)
+      -> DevicePtr e  -- packed (complex e)
+      -> DevicePtr e  -- packed (complex e)
       -> IO ()
-cuFFT _ p mode stream d_arr =
+cuFFT _ p mode stream d_in d_out =
   withLifetime stream $ \s -> do
     FFT.setStream p s
-    case floatingType :: FloatingType e of
-      TypeFloat{}   -> FFT.execC2C p d_arr d_arr (signOfMode mode)
-      TypeDouble{}  -> FFT.execZ2Z p d_arr d_arr (signOfMode mode)
-      TypeCFloat{}  -> FFT.execC2C p d_arr d_arr (signOfMode mode)
-      TypeCDouble{} -> FFT.execZ2Z p d_arr d_arr (signOfMode mode)
+    case numericR::NumericR e of
+      NumericRfloat32 -> FFT.execC2C p d_in d_out (signOfMode mode)
+      NumericRfloat64 -> FFT.execZ2Z p d_in d_out (signOfMode mode)
 
-fftType :: forall e. IsFloating e => Proxy e -> FFT.Type
+fftType :: forall e. Numeric e => Proxy e -> FFT.Type
 fftType _ =
-  case floatingType :: FloatingType e of
-    TypeFloat{}   -> FFT.C2C
-    TypeDouble{}  -> FFT.Z2Z
-    TypeCFloat{}  -> FFT.C2C
-    TypeCDouble{} -> FFT.Z2Z
+  case numericR::NumericR e of
+    NumericRfloat32 -> FFT.C2C
+    NumericRfloat64 -> FFT.Z2Z
 
 
 -- Plan caches

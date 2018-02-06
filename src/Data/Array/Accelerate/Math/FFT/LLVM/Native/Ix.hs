@@ -34,9 +34,9 @@ fromIxShapeRepr
 fromIxShapeRepr = liftToElt (go (eltType (undefined::ix)))
   where
     go :: forall ix'. TupleType ix' -> IxShapeRepr ix' -> ix'
-    go UnitTuple                                                 ()     = ()
-    go (PairTuple tt _)                                          (t, h) = (go tt t, h)
-    go (SingleTuple (NumScalarType (IntegralNumType TypeInt{}))) ((),h) = h
+    go TypeRunit                                                                    ()     = ()
+    go (TypeRpair tt _)                                                             (t, h) = (go tt t, h)
+    go (TypeRscalar (SingleScalarType (NumSingleType (IntegralNumType TypeInt{})))) ((),h) = h
     go _ _
       = $internalError "fromIxShapeRepr" "expected Int dimensions"
 
@@ -47,9 +47,9 @@ toIxShapeRepr
 toIxShapeRepr = liftToElt (go (eltType (undefined::ix)))
   where
     go :: forall ix'. TupleType ix' -> ix' -> IxShapeRepr ix'
-    go UnitTuple        ()                                             = ()
-    go (SingleTuple     (NumScalarType (IntegralNumType TypeInt{}))) h = ((), h)
-    go (PairTuple tt _) (t, h)                                         = (go tt t, h)
+    go TypeRunit        ()                                                                = ()
+    go (TypeRscalar     (SingleScalarType (NumSingleType (IntegralNumType TypeInt{})))) h = ((), h)
+    go (TypeRpair tt _) (t, h)                                                            = (go tt t, h)
     go _ _
       = $internalError "toIxShapeRepr" "not a valid Data.Ix index"
 

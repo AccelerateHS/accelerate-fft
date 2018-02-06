@@ -27,11 +27,12 @@ module Data.Array.Accelerate.Math.FFT.Adhoc ( fft )
 import Data.Array.Accelerate                                        hiding ( transpose )
 import Data.Array.Accelerate.Data.Bits
 import Data.Array.Accelerate.Data.Complex
+
 import Data.Array.Accelerate.Math.FFT.Mode
-import Data.Array.Accelerate.Math.FFT.Elt
+import Data.Array.Accelerate.Math.FFT.Type
 
 
-fft :: (Shape sh, Slice sh, FFTElt e)
+fft :: (Shape sh, Slice sh, Numeric e)
     => Mode
     -> Acc (Array (sh:.Int) (Complex e))
     -> Acc (Array (sh:.Int) (Complex e))
@@ -66,7 +67,7 @@ divideMaxPower fac =
 -- -- | Split-radix for power-of-two sizes
 -- --
 -- ditSplitRadix
---     :: (Shape sh, Slice sh, FFTElt e)
+--     :: (Shape sh, Slice sh, Numeric e)
 --     => Mode
 --     -> Acc (Array (sh:.Int) (Complex e))
 --     -> Acc (Array (sh:.Int) (Complex e))
@@ -76,7 +77,7 @@ divideMaxPower fac =
 --     else ditSplitRadixLoop mode arr
 
 ditSplitRadixLoop
-    :: forall sh e. (Shape sh, Slice sh, FFTElt e)
+    :: forall sh e. (Shape sh, Slice sh, Numeric e)
     => Mode
     -> Acc (Array (sh:.Int) (Complex e))
     -> Acc (Array (sh:.Int) (Complex e))
@@ -135,7 +136,7 @@ ditSplitRadixLoop mode arr =
 -- <http://oeis.org/A051037>
 --
 dit235
-    :: forall sh e. (Shape sh, Slice sh, FFTElt e)
+    :: forall sh e. (Shape sh, Slice sh, Numeric e)
     => Mode
     -> Acc (Array (sh:.Int) (Complex e))
     -> Acc (Array (sh:.Int) (Complex e))
@@ -231,7 +232,7 @@ dit235 mode arr =
 -- | Transformation of arbitrary length base on Bluestein on a 5-smooth size.
 --
 transformChirp235
-    :: (Shape sh, Slice sh, FFTElt e)
+    :: (Shape sh, Slice sh, Numeric e)
     => Mode
     -> Acc (Array (sh:.Int) (Complex e))
     -> Acc (Array (sh:.Int) (Complex e))
@@ -243,7 +244,7 @@ transformChirp235 mode arr =
 
 
 transformChirp
-    :: (Shape sh, Slice sh, FFTElt e)
+    :: (Shape sh, Slice sh, Numeric e)
     => Mode
     -> Exp Int
     -> (forall sh'. (Shape sh', Slice sh') => Acc (Array (sh':.Int) (Complex e)) -> Acc (Array (sh':.Int) (Complex e)))

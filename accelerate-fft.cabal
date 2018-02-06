@@ -31,10 +31,6 @@ Stability:              Experimental
 extra-source-files:
     README.md
     CHANGELOG.md
-    cubits/twine_f32.ptx
-    cubits/twine_f64.ptx
-    cubits/twine_f32.cu
-    cubits/twine_f64.cu
 
 flag llvm-ptx
   Description:          Use CUFFT-based implementation in the LLVM.PTX backend
@@ -59,9 +55,8 @@ library
 
   other-modules:
       Data.Array.Accelerate.Math.FFT.Adhoc
-      Data.Array.Accelerate.Math.FFT.Elt
       Data.Array.Accelerate.Math.FFT.Mode
-      Data.Array.Accelerate.Math.FFT.Twine
+      Data.Array.Accelerate.Math.FFT.Type
 
   hs-source-dirs:       src
   ghc-options:          -O2 -Wall -funbox-strict-fields
@@ -76,17 +71,8 @@ library
 
     other-modules:
       Data.Array.Accelerate.Math.FFT.LLVM.Native
+      Data.Array.Accelerate.Math.FFT.LLVM.Native.Base
       Data.Array.Accelerate.Math.FFT.LLVM.Native.Ix
-      Data.Array.Accelerate.Math.FFT.LLVM.Native.Twine
-
-    cc-options:
-      -O3
-      -Wall
-      -march=native
-
-    c-sources:
-      cbits/twine_f32.c
-      cbits/twine_f64.c
 
   if flag(llvm-ptx)
     cpp-options:        -DACCELERATE_LLVM_PTX_BACKEND
@@ -105,7 +91,6 @@ library
       Data.Array.Accelerate.Math.FFT.LLVM.PTX
       Data.Array.Accelerate.Math.FFT.LLVM.PTX.Base
       Data.Array.Accelerate.Math.FFT.LLVM.PTX.Plans
-      Data.Array.Accelerate.Math.FFT.LLVM.PTX.Twine
 
   -- Don't add the extensions list here. Instead, place individual LANGUAGE
   -- pragmas in the files that require a specific extension. This means the
