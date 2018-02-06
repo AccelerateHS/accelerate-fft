@@ -100,13 +100,11 @@ install:
   - llc --version; true
   - opt --version; true
   - stack build --dry-run
-  # - travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --jobs=2 --no-terminal --no-copy-bins
-  - travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --jobs=2 --no-terminal --no-copy-bins accelerate-llvm-native accelerate-llvm-ptx
+  - travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --jobs=2 --no-terminal --no-copy-bins
 
 script:
-  - true
-  # - stack build --fast --jobs=2 --test --no-run-tests --no-terminal --haddock --no-haddock-deps
-  # - stack test accelerate-fft:test-llvm-native --test-arguments='--hedgehog-tests 50' 2>/dev/null
+  - stack build --fast --jobs=2 --test --no-run-tests --no-terminal --haddock --no-haddock-deps
+  - stack test accelerate-fft:test-llvm-native --test-arguments='--hedgehog-tests 50' 2>/dev/null
 
 after_success:
   - source .travis/update-accelerate-buildbot.sh
