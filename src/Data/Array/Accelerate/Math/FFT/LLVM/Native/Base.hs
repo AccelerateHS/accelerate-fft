@@ -51,6 +51,7 @@ nameOf _       _ = printf "FFTW.idft%dD" (rank (undefined::sh))
 
 -- /O(1)/ Convert a CArray to an Accelerate array
 --
+{-# INLINE fromCArray #-}
 fromCArray
     :: forall ix sh e. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, Shape sh, Elt ix, Numeric e)
     => CArray ix (Complex e)
@@ -66,6 +67,7 @@ fromCArray (CArray lo hi _ fp) = do
 
 -- /O(1)/ Use an Accelerate array as a CArray
 --
+{-# INLINE withCArray #-}
 withCArray
     :: forall ix sh e a. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, Shape sh, Elt ix, Numeric e)
     => Array sh (Complex e)
@@ -82,6 +84,7 @@ withCArray arr f =
 
 -- Use underlying array pointers
 --
+{-# INLINE withArray #-}
 withArray
     :: forall sh e a. Numeric e
     => Array sh (Complex e)
@@ -89,6 +92,7 @@ withArray
     -> IO a
 withArray (Array _ adata) = withArrayData (numericR::NumericR e) adata
 
+{-# INLINE withArrayData #-}
 withArrayData
     :: NumericR e
     -> ArrayData (EltRepr (Complex e))
@@ -100,6 +104,7 @@ withArrayData NumericRfloat64 (AD_V2 (AD_Double ua)) = withLifetime (uniqueArray
 
 -- Match shape surface types
 --
+{-# INLINE matchShapeType #-}
 matchShapeType
     :: forall sh sh'. (Shape sh, Shape sh')
     => sh

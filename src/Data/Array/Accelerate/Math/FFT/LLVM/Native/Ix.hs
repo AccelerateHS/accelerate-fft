@@ -27,6 +27,7 @@ type family IxShapeRepr e where
   IxShapeRepr Int   = ((),Int)
   IxShapeRepr (t,h) = (IxShapeRepr t, h)
 
+{-# INLINE fromIxShapeRepr #-}
 fromIxShapeRepr
     :: forall ix sh. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, Shape sh, Elt ix)
     => sh
@@ -40,6 +41,7 @@ fromIxShapeRepr = liftToElt (go (eltType (undefined::ix)))
     go _ _
       = $internalError "fromIxShapeRepr" "expected Int dimensions"
 
+{-# INLINE toIxShapeRepr #-}
 toIxShapeRepr
     :: forall ix sh. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, Shape sh, Elt ix)
     => ix

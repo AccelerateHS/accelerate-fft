@@ -46,6 +46,7 @@ data Plans a = Plans
 
 -- Create a new plan cache
 --
+{-# INLINE createPlan #-}
 createPlan :: (a -> IO FFT.Handle) -> (a -> Int) -> IO (Plans a)
 createPlan via mix =
   Plans <$> newMVar Map.empty <*> pure via <*> pure mix
@@ -61,6 +62,7 @@ createPlan via mix =
 --
 -- <http://docs.nvidia.com/cuda/cufft/index.html#thread-safety>
 --
+{-# INLINE withPlan #-}
 withPlan :: Plans a -> a -> (FFT.Handle -> LLVM PTX b) -> LLVM PTX b
 withPlan Plans{..} a k = do
   lc <- gets (deviceContext . ptxContext)
@@ -83,7 +85,7 @@ withPlan Plans{..} a k = do
   --
   withLifetime' h k
 
-
+{-# INLINE toKey #-}
 toKey :: CUDA.Context -> Int
 toKey (CUDA.Context (Ptr addr#)) = I# (addr2Int# addr#)
 

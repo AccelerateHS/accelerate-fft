@@ -74,6 +74,7 @@ fft3D mode = ForeignAcc "cuda.fft3d" $ fft' fft3D_plans mode
 -- Internals
 -- ---------
 
+{-# INLINEABLE fft' #-}
 fft' :: forall sh e. (Shape sh, Numeric e)
      => Plans (sh, FFT.Type)
      -> Mode
@@ -102,6 +103,7 @@ fft' plans mode stream =
 
 -- Execute the FFT
 --
+{-# INLINE cuFFT #-}
 cuFFT :: forall e. Numeric e
       => Proxy e
       -> FFT.Handle

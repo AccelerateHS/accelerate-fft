@@ -30,6 +30,7 @@ import Foreign.CUDA.Ptr                                             ( DevicePtr 
 import Data.Typeable
 
 
+{-# INLINE withArray #-}
 withArray
     :: forall sh e b. Numeric e
     => Array sh (Complex e)
@@ -38,6 +39,7 @@ withArray
     -> LLVM PTX b
 withArray (Array _ adata) = withArrayData (numericR::NumericR e) adata
 
+{-# INLINE withArrayData #-}
 withArrayData
     :: NumericR e
     -> ArrayData (EltRepr (Complex e))
@@ -55,7 +57,7 @@ withArrayData NumericRfloat64 (AD_V2 ad) s k =
     e <- checkpoint s
     return (Just e, r)
 
-
+{-# INLINE withLifetime' #-}
 withLifetime' :: Lifetime a -> (a -> LLVM PTX b) -> LLVM PTX b
 withLifetime' l k = do
   r <- k (unsafeGetValue l)
@@ -65,6 +67,7 @@ withLifetime' l k = do
 
 -- Match shape surface types
 --
+{-# INLINE matchShapeType #-}
 matchShapeType
     :: forall sh sh'. (Shape sh, Shape sh')
     => sh

@@ -99,7 +99,7 @@ fft3D mode
     go :: FFTWReal r => CArray (Int,Int,Int) (Complex r) -> CArray (Int,Int,Int) (Complex r)
     go = FFT.dftGU (signOf mode) flags [0,1,2]
 
-
+{-# INLINE liftCtoA #-}
 liftCtoA
     :: forall ix sh e. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, Shape sh, Elt ix, Numeric e)
     => (CArray ix (Complex e) -> CArray ix (Complex e))
