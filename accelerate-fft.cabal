@@ -83,7 +83,7 @@ library
       , hashable                >= 1.0
       , unordered-containers    >= 0.2
       , cuda                    >= 0.5
-      , cufft                   >= 0.1.2
+      , cufft                   >= 0.9
       , file-embed              >= 0.0.10
       , mtl                     >= 2.2
 

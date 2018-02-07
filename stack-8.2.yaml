@@ -20,6 +20,9 @@ extra-deps:
 - git:    https://github.com/tmcdonell/cuda.git
   commit: f04929808536fbcd28050d6bfd5ed682d8379d5b
 
+- git:    https://github.com/tmcdonell/cufft.git
+  commit: 10969ad2919f9d3a00ef9b896c61bcf12929fe88
+
 # Override default flag values for local packages and extra-deps
 # flags: {}
 

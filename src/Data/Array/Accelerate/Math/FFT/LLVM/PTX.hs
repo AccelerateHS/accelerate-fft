@@ -107,21 +107,25 @@ cuFFT :: forall e. Numeric e
       -> FFT.Handle
       -> Mode
       -> Stream
-      -> DevicePtr e  -- packed (complex e)
-      -> DevicePtr e  -- packed (complex e)
+      -> DevicePtr (Complex e)
+      -> DevicePtr (Complex e)
       -> IO ()
 cuFFT _ p mode stream d_in d_out =
   withLifetime stream $ \s -> do
     FFT.setStream p s
     case numericR::NumericR e of
-      NumericRfloat32 -> FFT.execC2C p d_in d_out (signOfMode mode)
-      NumericRfloat64 -> FFT.execZ2Z p d_in d_out (signOfMode mode)
+      NumericRfloat32 -> FFT.execC2C p (fftMode mode) d_in d_out
+      NumericRfloat64 -> FFT.execZ2Z p (fftMode mode) d_in d_out
 
 fftType :: forall e. Numeric e => Proxy e -> FFT.Type
 fftType _ =
   case numericR::NumericR e of
     NumericRfloat32 -> FFT.C2C
     NumericRfloat64 -> FFT.Z2Z
+
+fftMode :: Mode -> FFT.Mode
+fftMode Forward = FFT.Forward
+fftMode _       = FFT.Inverse
 
 
 -- Plan caches
