@@ -28,7 +28,7 @@ import Data.Array.Accelerate.Math.FFT.Type
 import Data.Array.Accelerate.Math.FFT.LLVM.Native.Ix
 
 import Data.Array.CArray.Base                                       ( CArray(..) )
-import Math.FFT.Base                                                ( Sign(..), Flag, measure, destroyInput )
+import Math.FFT.Base                                                ( Sign(..), Flag, measure, preserveInput )
 
 import Data.Bits
 import Data.Typeable
@@ -42,7 +42,7 @@ signOf Forward = DFTForward
 signOf _       = DFTBackward
 
 flags :: Flag
-flags = measure .|. destroyInput
+flags = measure .|. preserveInput
 
 nameOf :: forall sh. Shape sh => Mode -> sh -> String
 nameOf Forward _ = printf "FFTW.dft%dD"  (rank (undefined::sh))
