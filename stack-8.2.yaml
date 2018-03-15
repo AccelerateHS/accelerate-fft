@@ -8,20 +8,16 @@ packages:
 
 extra-deps:
 - git:    https://github.com/tmcdonell/accelerate.git
-  commit: fd5c214cecc459552406273a790b8b4aca99dd86
+  commit: 0f98ba984efacc22aa2c488de5ad08a513b65ef3
 
 - git:    https://github.com/tmcdonell/accelerate-llvm.git
-  commit: 800581a164a4d9e7eecce74699c5336d7c5ff3c9
+  commit: 757485c73dc113944e6582147c880a952f043245
   subdirs:
-    - accelerate-llvm
-    - accelerate-llvm-native
-    - accelerate-llvm-ptx
+    - 'accelerate-llvm'
+    - 'accelerate-llvm-native'
+    - 'accelerate-llvm-ptx'
 
-- git:    https://github.com/tmcdonell/cuda.git
-  commit: f04929808536fbcd28050d6bfd5ed682d8379d5b
-
-- git:    https://github.com/tmcdonell/cufft.git
-  commit: 10969ad2919f9d3a00ef9b896c61bcf12929fe88
+- 'cufft-0.9.0.0'
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

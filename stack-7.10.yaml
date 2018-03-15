@@ -8,31 +8,28 @@ packages:
 
 extra-deps:
 - git:    https://github.com/tmcdonell/accelerate.git
-  commit: fd5c214cecc459552406273a790b8b4aca99dd86
+  commit: 0f98ba984efacc22aa2c488de5ad08a513b65ef3
 
 - git:    https://github.com/tmcdonell/accelerate-llvm.git
-  commit: 800581a164a4d9e7eecce74699c5336d7c5ff3c9
+  commit: 757485c73dc113944e6582147c880a952f043245
   subdirs:
-    - accelerate-llvm
-    - accelerate-llvm-native
-    - accelerate-llvm-ptx
+    - 'accelerate-llvm'
+    - 'accelerate-llvm-native'
+    - 'accelerate-llvm-ptx'
 
-- git:    https://github.com/tmcdonell/cufft.git
-  commit: 10969ad2919f9d3a00ef9b896c61bcf12929fe88
-
-- 'Cabal-2.0.0.2'
-- 'cabal-doctest-1.0.2'
+- 'Cabal-2.0.1.1'
 - 'chaselev-deque-0.5.0.5'
-- 'cuda-0.9.0.0'
-- 'hedgehog-0.5'
+- 'constraints-0.9.1'
+- 'cuda-0.9.0.3'
+- 'cufft-0.9.0.0'
+- 'hedgehog-0.5.3'
 - 'libffi-0.1'
 - 'llvm-hs-4.2.0'
 - 'llvm-hs-pure-4.1.0.0'
-- 'nvvm-0.8.0.0'
+- 'nvvm-0.8.0.3'
+- 'parsec-3.1.13.0'
 - 'process-1.4.3.0'
-- 'tasty-hedgehog-0.1.0.1'
-- 'transformers-0.5.5.0'
-- 'transformers-compat-0.5.1.4'
+- 'tasty-hedgehog-0.2.0.0'
 - 'unique-0'
 - 'wl-pprint-annotated-0.1.0.0'
 
