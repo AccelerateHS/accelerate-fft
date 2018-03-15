@@ -127,7 +127,7 @@ script:
   - stack build --fast --jobs=2 --test --no-run-tests --no-terminal --haddock --no-haddock-deps
 
   # run test suite (CPU backend only)
-  - stack test accelerate-fft:test-llvm-native --test-arguments='--hedgehog-tests 50' 2>/dev/null
+  - stack test accelerate-fft:test-llvm-native --test-arguments='--timeout=30s --hedgehog-tests=50 --hedgehog-shrinks=0' 2>/dev/null
 
 after_success:
   - source .travis/update-accelerate-buildbot.sh
