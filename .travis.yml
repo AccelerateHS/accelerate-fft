@@ -4,15 +4,14 @@
 # relevant version of LLVM as (a very old version of) the CUDA toolkit (4.0).
 # Caches the 'stack' build directory to speed subsequent compilations.
 #
-language: generic
+language: minimal
 dist: trusty
 sudo: required
 
 cache:
   timeout: 600
   directories:
-    - $HOME/.stack
-    - $HOME/llvm
+    - $HOME/.stack/snapshots
     - .stack-work/install
 
 before_cache:
