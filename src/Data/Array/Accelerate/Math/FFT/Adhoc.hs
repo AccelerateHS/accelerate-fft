@@ -27,6 +27,7 @@ module Data.Array.Accelerate.Math.FFT.Adhoc ( fft )
 import Data.Array.Accelerate                                        hiding ( transpose )
 import Data.Array.Accelerate.Data.Bits
 import Data.Array.Accelerate.Data.Complex
+import Data.Array.Accelerate.Control.Lens.Shape
 
 import Data.Array.Accelerate.Math.FFT.Mode
 import Data.Array.Accelerate.Math.FFT.Type
@@ -353,18 +354,13 @@ headV xs = slice xs (lift (Any :. (0 :: Exp Int) :. All))
 tailV :: forall sh e. (Shape sh, Slice sh, Elt e)
       => Acc (Array (sh:.Int:.Int) e)
       -> Acc (Array (sh:.Int:.Int) e)
-tailV = dropV 1
+tailV = tailOn _2
 
 dropV :: forall sh e. (Shape sh, Slice sh, Elt e)
       => Exp Int
       -> Acc (Array (sh:.Int:.Int) e)
       -> Acc (Array (sh:.Int:.Int) e)
-dropV u xs =
-  let sh :. m :. n = unlift (shape xs) :: Exp sh :. Exp Int :. Exp Int
-  in
-  backpermute (lift (sh :. 0 `max` (m-u) :. n))
-              (\(unlift -> ix :. j :. i :: Exp sh :. Exp Int :. Exp Int) -> lift (ix :. j+u :. i))
-              xs
+dropV = dropOn _2
 
 sieve
     :: forall sh e. (Shape sh, Slice sh, Elt e)
@@ -412,15 +408,7 @@ infixr 5 ++^
       => Acc (Array (sh:.Int:.Int) e)
       -> Acc (Array (sh:.Int:.Int) e)
       -> Acc (Array (sh:.Int:.Int) e)
-(++^) xs ys =
-  let sh1 :. m1 :. n1 = unlift (shape xs)
-      sh2 :. m2 :. n2 = unlift (shape ys)
-  in
-  generate (lift (intersect sh1 sh2 :. m1+m2 :. min n1 n2))
-           (\ix -> let sh :. j :. i = unlift ix :: Exp sh :. Exp Int :. Exp Int
-                   in  if j < m1
-                         then xs ! ix
-                         else ys ! lift (sh :. j-m1 :. i))
+(++^) = concatOn _2
 
 zipWithExtrude1
     :: (Shape sh, Slice sh, Elt a, Elt b, Elt c)
@@ -444,9 +432,7 @@ transpose
     :: forall sh e. (Shape sh, Slice sh, Elt e)
     => Acc (Array (sh:.Int:.Int) e)
     -> Acc (Array (sh:.Int:.Int) e)
-transpose arr =
-  let swap (unlift -> (ix:.r:.c) :: Exp sh :. Exp Int :. Exp Int) = lift (ix:.c:.r)
-  in  backpermute (swap (shape arr)) swap arr
+transpose = transposeOn _1 _2
 
 transform2
     :: (Shape sh, Slice sh, Num e)

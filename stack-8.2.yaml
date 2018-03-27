@@ -17,6 +17,9 @@ extra-deps:
     - 'accelerate-llvm-native'
     - 'accelerate-llvm-ptx'
 
+- git:    https://github.com/tmcdonell/lens-accelerate.git
+  commit: 8893c758145d70cd08035c185a2f0bb24fd52de9
+
 - 'cufft-0.9.0.0'
 
 # Override default flag values for local packages and extra-deps
