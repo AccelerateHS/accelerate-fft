@@ -117,11 +117,11 @@ install:
 
   # bootstrap
   # - travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --jobs=2 --no-terminal accelerate
-  - travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --jobs=2 --no-terminal accelerate-llvm-native accelerate-llvm-ptx
+  # - travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --jobs=2 --no-terminal accelerate-llvm-native accelerate-llvm-ptx
 
   # regular build
-  # - stack build --dry-run
-  # - travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --jobs=2 --no-terminal --no-copy-bins
+  - stack build --dry-run
+  - travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --jobs=2 --no-terminal --no-copy-bins
 
 script:
   - true
