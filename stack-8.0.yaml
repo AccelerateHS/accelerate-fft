@@ -8,10 +8,10 @@ packages:
 
 extra-deps:
 - git:    https://github.com/tmcdonell/accelerate.git
-  commit: 0f98ba984efacc22aa2c488de5ad08a513b65ef3
+  commit: 0a5d8f622f9c7541afbbf3d6848d6fa636e510d2
 
 - git:    https://github.com/tmcdonell/accelerate-llvm.git
-  commit: 757485c73dc113944e6582147c880a952f043245
+  commit: fd2cb894c702e3cb4a243bc54586e018163f8d5b
   subdirs:
     - 'accelerate-llvm'
     - 'accelerate-llvm-native'
@@ -20,6 +20,7 @@ extra-deps:
 - 'Cabal-2.0.1.1'
 - 'cuda-0.9.0.3'
 - 'cufft-0.9.0.0'
+- 'hashtables-1.2.3.0'
 - 'nvvm-0.8.0.3'
 - 'tasty-hedgehog-0.2.0.0'
 
