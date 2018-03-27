@@ -130,6 +130,6 @@ script:
   # run test suite (CPU backend only)
   - stack test accelerate-fft:test-llvm-native --test-arguments='--timeout=30s --hedgehog-tests=50 --hedgehog-shrinks=0 --num-threads=1'
 
-# after_success:
-#   - source .travis/update-accelerate-buildbot.sh
+after_success:
+  - source .travis/update-accelerate-buildbot.sh
 
