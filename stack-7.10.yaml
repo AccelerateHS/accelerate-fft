@@ -7,19 +7,10 @@ packages:
 - '.'
 
 extra-deps:
-- git:    https://github.com/tmcdonell/accelerate.git
-  commit: 0a5d8f622f9c7541afbbf3d6848d6fa636e510d2
-
-- git:    https://github.com/tmcdonell/accelerate-llvm.git
-  commit: fd2cb894c702e3cb4a243bc54586e018163f8d5b
-  subdirs:
-    - 'accelerate-llvm'
-    - 'accelerate-llvm-native'
-    - 'accelerate-llvm-ptx'
-
-- git:    https://github.com/tmcdonell/lens-accelerate.git
-  commit: 8893c758145d70cd08035c185a2f0bb24fd52de9
-
+- 'accelerate-1.2.0.0'
+- 'accelerate-llvm-1.2.0.0'
+- 'accelerate-llvm-native-1.2.0.0'
+- 'accelerate-llvm-ptx-1.2.0.0'
 - 'Cabal-2.0.1.1'
 - 'chaselev-deque-0.5.0.5'
 - 'constraints-0.9.1'
@@ -27,6 +18,7 @@ extra-deps:
 - 'cufft-0.9.0.0'
 - 'hashtables-1.2.3.0'
 - 'hedgehog-0.5.3'
+- 'lens-accelerate-0.2.0.0'
 - 'libffi-0.1'
 - 'llvm-hs-4.2.0'
 - 'llvm-hs-pure-4.1.0.0'

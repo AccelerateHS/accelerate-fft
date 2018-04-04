@@ -7,21 +7,13 @@ packages:
 - '.'
 
 extra-deps:
-- git:    https://github.com/tmcdonell/accelerate.git
-  commit: 0a5d8f622f9c7541afbbf3d6848d6fa636e510d2
-
-- git:    https://github.com/tmcdonell/accelerate-llvm.git
-  commit: fd2cb894c702e3cb4a243bc54586e018163f8d5b
-  subdirs:
-    - 'accelerate-llvm'
-    - 'accelerate-llvm-native'
-    - 'accelerate-llvm-ptx'
-
-- git:    https://github.com/tmcdonell/lens-accelerate.git
-  commit: 8893c758145d70cd08035c185a2f0bb24fd52de9
-
+- 'accelerate-1.2.0.0'
+- 'accelerate-llvm-1.2.0.0'
+- 'accelerate-llvm-native-1.2.0.0'
+- 'accelerate-llvm-ptx-1.2.0.0'
 - 'cuda-0.9.0.3'
 - 'cufft-0.9.0.0'
+- 'lens-accelerate-0.2.0.0'
 - 'nvvm-0.8.0.3'
 - 'tasty-hedgehog-0.2.0.0'
 
