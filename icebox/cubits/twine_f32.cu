@@ -9,7 +9,6 @@
  *
  * Convert between Accelerate's Struct-of-Array representation of complex
  * numbers and the Array-of-Struct representation necessary for CUBLAS.
- *
  */
 
 #include <cuda.h>

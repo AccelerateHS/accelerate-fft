@@ -18,11 +18,6 @@ module Data.Array.Accelerate.Math.FFT.Twine
 import Data.Array.Accelerate                                      as A
 import Data.Array.Accelerate.Data.Complex
 
-#ifdef ACCELERATE_LLVM_PTX_BACKEND
-import Data.FileEmbed
-import Data.ByteString                                            ( ByteString )
-#endif
-
 
 -- Interleave the real and imaginary components in a complex array and produce a
 -- flattened vector. This allows us to mimic the array-of-struct representation
@@ -58,31 +53,8 @@ deinterleave arr = generate sh swizzle
       let i = indexHead ix `quot` 2
       in  lift ( arr A.!! i :+ arr A.!! (i+1) ) :: Exp (Complex e)
 
-
 {-# RULES
   "interleave/deinterleave" forall x. deinterleave (interleave x) = x;
   "deinterleave/interleave" forall x. interleave (deinterleave x) = x
  #-}
-
-
-#ifdef ACCELERATE_LLVM_PTX_BACKEND
-
--- Embedded PTX code for interleave and deinterleave for 32- and 64-bit floating
--- point numbers respectively. These can be loaded and executed by the CUDA
--- driver at runtime as required.
---
--- The PTX code was compiled for SM-2.0 and 64-bit address space (the default
--- settings of nvcc-7.5), but the code is simple enough that the CUDA device
--- driver should be able to compile it for the actual target architecture
--- without issue. This has been confirmed with respect to SM, but I don't have
--- a 32-bit machine available to test that aspect with.
---
-
-ptx_twine_f32 :: ByteString
-ptx_twine_f32 = $(makeRelativeToProject "cubits/twine_f32.ptx" >>= embedFile)
-
-ptx_twine_f64 :: ByteString
-ptx_twine_f64 = $(makeRelativeToProject "cubits/twine_f64.ptx" >>= embedFile)
-
-#endif
 
