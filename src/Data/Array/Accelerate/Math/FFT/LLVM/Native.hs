@@ -51,7 +51,7 @@ fft mode
       NumericRfloat32 -> go
       NumericRfloat64 -> go
   where
-    go :: FFTWReal e => Array sh (Complex e) -> LLVM Native (Array sh (Complex e))
+    go :: FFTWReal e => Array sh (Complex e) -> Par Native (Future (Array sh (Complex e)))
     go | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM1) = liftCtoA (FFT.dftGU (signOf mode) flags [0] `ix` (undefined :: (Int)))
        | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM2) = liftCtoA (FFT.dftGU (signOf mode) flags [1] `ix` (undefined :: (Int,Int)))
        | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM3) = liftCtoA (FFT.dftGU (signOf mode) flags [2] `ix` (undefined :: (Int,Int,Int)))
@@ -104,7 +104,7 @@ liftCtoA
     :: forall ix sh e. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, Shape sh, Elt ix, Numeric e)
     => (CArray ix (Complex e) -> CArray ix (Complex e))
     -> Array sh (Complex e)
-    -> LLVM Native (Array sh (Complex e))
+    -> Par Native (Future (Array sh (Complex e)))
 liftCtoA f a =
-  liftIO $ withCArray a (fromCArray . f)
+  newFull =<< liftIO (withCArray a (fromCArray . f))
 

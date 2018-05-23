@@ -49,12 +49,12 @@ withArrayData
 withArrayData NumericRfloat32 (AD_V2 ad) s k =
   withDevicePtr ad $ \p -> do
     r <- k p
-    e <- checkpoint s
+    e <- waypoint s
     return (Just e,r)
 withArrayData NumericRfloat64 (AD_V2 ad) s k =
   withDevicePtr ad $ \p -> do
     r <- k p
-    e <- checkpoint s
+    e <- waypoint s
     return (Just e, r)
 
 {-# INLINE withLifetime' #-}

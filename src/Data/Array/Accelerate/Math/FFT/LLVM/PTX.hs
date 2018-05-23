@@ -40,6 +40,7 @@ import Data.Array.Accelerate.LLVM.PTX.Foreign
 import Foreign.CUDA.Ptr                                             ( DevicePtr, castDevPtr )
 import qualified Foreign.CUDA.FFT                                   as FFT
 
+import Control.Monad.Reader
 import Data.Hashable
 import Data.Proxy
 import Data.Typeable
@@ -78,23 +79,27 @@ fft3D mode = ForeignAcc "cuda.fft3d" $ fft' fft3D_plans mode
 fft' :: forall sh e. (Shape sh, Numeric e)
      => Plans (sh, FFT.Type)
      -> Mode
-     -> Stream
      -> Array sh (Complex e)
-     -> LLVM PTX (Array sh (Complex e))
-fft' plans mode stream =
+     -> Par PTX (Future (Array sh (Complex e)))
+fft' plans mode =
   let
-      go :: Numeric e => Array sh (Complex e) -> LLVM PTX (Array sh (Complex e))
+      go :: Numeric e => Array sh (Complex e) -> Par PTX (Future (Array sh (Complex e)))
       go ain = do
         let
             sh = shape ain
             t  = fftType (Proxy::Proxy e)
         --
-        aout <- allocateRemote sh
-        withArray ain stream    $ \d_in  -> do
-         withArray aout stream  $ \d_out -> do
-          withPlan plans (sh,t) $ \h     -> do
-            liftIO $ cuFFT (Proxy::Proxy e) h mode stream (castDevPtr d_in) (castDevPtr d_out)
-            return aout
+        aout    <- allocateRemote sh
+        stream  <- ask
+        future  <- new
+        liftPar $
+          withArray ain stream    $ \d_in  -> do
+           withArray aout stream  $ \d_out -> do
+            withPlan plans (sh,t) $ \h     -> do
+              liftIO $ cuFFT (Proxy::Proxy e) h mode stream (castDevPtr d_in) (castDevPtr d_out)
+        --
+        put future aout
+        return future
   in
   case numericR::NumericR e of
     NumericRfloat32 -> go
