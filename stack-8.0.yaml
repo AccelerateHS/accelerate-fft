@@ -23,6 +23,7 @@ extra-deps:
 - 'half-0.3'
 - 'hashtables-1.2.3.0'
 - 'lens-accelerate-0.2.0.0'
+- 'lockfree-queue-0.2.3.1'
 - 'nvvm-0.8.0.3'
 - 'tasty-hedgehog-0.2.0.0'
 
