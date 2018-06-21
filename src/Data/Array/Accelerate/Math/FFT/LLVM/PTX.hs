@@ -90,7 +90,7 @@ fft' plans mode =
             t  = fftType (Proxy::Proxy e)
         --
         aout    <- allocateRemote sh
-        stream  <- ask
+        stream  <- asks ptxStream
         future  <- new
         liftPar $
           withArray ain stream    $ \d_in  -> do
