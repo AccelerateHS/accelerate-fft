@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
 {-# LANGUAGE ViewPatterns        #-}
@@ -67,7 +68,7 @@ fft :: forall sh e. (Shape sh, Slice sh, Numeric e)
 fft mode arr
   = let
         scale = A.fromIntegral (indexHead (shape arr))
-        rank  = A.rank (undefined :: sh:.Int)
+        rank  = A.rank @(sh:.Int)
         go    =
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
                   (if rank P.<= 5 then foreignAcc (Native.fft mode) else id) $

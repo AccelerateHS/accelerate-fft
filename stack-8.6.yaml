@@ -1,10 +1,10 @@
 # For more information, see: https://github.com/commercialhaskell/stack/blob/release/doc/yaml_configuration.md
 # vim: nospell
 
-resolver: lts-9.0
+resolver: nightly-2018-11-18
 
 packages:
-- '.'
+- .
 
 extra-deps:
 - git:    https://github.com/tmcdonell/accelerate.git
@@ -17,21 +17,20 @@ extra-deps:
     - accelerate-llvm-native
     - accelerate-llvm-ptx
 
+- git :   https://github.com/llvm-hs/llvm-hs.git
+  commit: 1e512dcf2a40d253a95d231b7991b48f1f2a8a9e
+  subdirs:
+    - llvm-hs
+    - llvm-hs-pure
+
 - git:    https://github.com/tmcdonell/lens-accelerate.git
   commit: b74eb8098735b1ad6cff3c5655af03d3f29b9f8e
 
-- Cabal-2.0.1.1
-- cuda-0.10.0.0
-- cufft-0.9.0.1
-- half-0.3
-- hashtables-1.2.3.0
-- lockfree-queue-0.2.3.1
-- nvvm-0.9.0.0
-- primitive-0.6.4.0
-- tasty-hedgehog-0.2.0.0
-
 # Override default flag values for local packages and extra-deps
 # flags: {}
+
+# Extra global and per-package GHC options
+# ghc-options: {}
 
 # Extra package databases containing global packages
 # extra-package-dbs: []

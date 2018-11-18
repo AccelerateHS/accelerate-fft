@@ -1,6 +1,8 @@
 {-# LANGUAGE GADTs               #-}
+{-# LANGUAGE MagicHash           #-}
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 -- |
 -- Module      : Data.Array.Accelerate.Math.FFT.LLVM.Native.Base
@@ -15,7 +17,6 @@
 module Data.Array.Accelerate.Math.FFT.LLVM.Native.Base
   where
 
-import Data.Array.Accelerate.Analysis.Match
 import Data.Array.Accelerate.Array.Data
 import Data.Array.Accelerate.Array.Sugar
 import Data.Array.Accelerate.Array.Unique
@@ -31,7 +32,6 @@ import Data.Array.CArray.Base                                       ( CArray(..)
 import Math.FFT.Base                                                ( Sign(..), Flag, measure, preserveInput )
 
 import Data.Bits
-import Data.Typeable
 import Foreign.ForeignPtr
 import Text.Printf
 import Prelude                                                      as P
@@ -45,8 +45,8 @@ flags :: Flag
 flags = measure .|. preserveInput
 
 nameOf :: forall sh. Shape sh => Mode -> sh -> String
-nameOf Forward _ = printf "FFTW.dft%dD"  (rank (undefined::sh))
-nameOf _       _ = printf "FFTW.idft%dD" (rank (undefined::sh))
+nameOf Forward _ = printf "FFTW.dft%dD"  (rank @sh)
+nameOf _       _ = printf "FFTW.idft%dD" (rank @sh)
 
 
 -- /O(1)/ Convert a CArray to an Accelerate array
@@ -62,8 +62,8 @@ fromCArray (CArray lo hi _ fp) = do
   ua <- newUniqueArray (castForeignPtr fp :: ForeignPtr e)
   --
   case numericR::NumericR e of
-    NumericRfloat32 -> return $ Array (fromElt sh) (AD_V2 (AD_Float  ua))
-    NumericRfloat64 -> return $ Array (fromElt sh) (AD_V2 (AD_Double ua))
+    NumericRfloat32 -> return $ Array (fromElt sh) (AD_Vec 2# (AD_Float  ua))
+    NumericRfloat64 -> return $ Array (fromElt sh) (AD_Vec 2# (AD_Double ua))
 
 -- /O(1)/ Use an Accelerate array as a CArray
 --
@@ -98,22 +98,6 @@ withArrayData
     -> ArrayData (EltRepr (Complex e))
     -> (ForeignPtr e -> IO a)
     -> IO a
-withArrayData NumericRfloat32 (AD_V2 (AD_Float  ua)) = withLifetime (uniqueArrayData ua)
-withArrayData NumericRfloat64 (AD_V2 (AD_Double ua)) = withLifetime (uniqueArrayData ua)
-
-
--- Match shape surface types
---
-{-# INLINE matchShapeType #-}
-matchShapeType
-    :: forall sh sh'. (Shape sh, Shape sh')
-    => sh
-    -> sh'
-    -> Maybe (sh :~: sh')
-matchShapeType _ _
-  | Just Refl <- matchTupleType (eltType (undefined::sh)) (eltType (undefined::sh'))
-  = gcast Refl
-
-matchShapeType _ _
-  = Nothing
+withArrayData NumericRfloat32 (AD_Vec _ (AD_Float  ua)) = withLifetime (uniqueArrayData ua)
+withArrayData NumericRfloat64 (AD_Vec _ (AD_Double ua)) = withLifetime (uniqueArrayData ua)
 

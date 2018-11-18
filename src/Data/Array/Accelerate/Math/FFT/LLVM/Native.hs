@@ -2,6 +2,7 @@
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
 -- |
@@ -52,11 +53,11 @@ fft mode
       NumericRfloat64 -> go
   where
     go :: FFTWReal e => Array sh (Complex e) -> Par Native (Future (Array sh (Complex e)))
-    go | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM1) = liftCtoA (FFT.dftGU (signOf mode) flags [0] `ix` (undefined :: (Int)))
-       | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM2) = liftCtoA (FFT.dftGU (signOf mode) flags [1] `ix` (undefined :: (Int,Int)))
-       | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM3) = liftCtoA (FFT.dftGU (signOf mode) flags [2] `ix` (undefined :: (Int,Int,Int)))
-       | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM4) = liftCtoA (FFT.dftGU (signOf mode) flags [3] `ix` (undefined :: (Int,Int,Int,Int)))
-       | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM5) = liftCtoA (FFT.dftGU (signOf mode) flags [4] `ix` (undefined :: (Int,Int,Int,Int,Int)))
+    go | Just Refl <- matchShapeType @sh @DIM1 = liftCtoA (FFT.dftGU (signOf mode) flags [0] `ix` (undefined :: (Int)))
+       | Just Refl <- matchShapeType @sh @DIM2 = liftCtoA (FFT.dftGU (signOf mode) flags [1] `ix` (undefined :: (Int,Int)))
+       | Just Refl <- matchShapeType @sh @DIM3 = liftCtoA (FFT.dftGU (signOf mode) flags [2] `ix` (undefined :: (Int,Int,Int)))
+       | Just Refl <- matchShapeType @sh @DIM4 = liftCtoA (FFT.dftGU (signOf mode) flags [3] `ix` (undefined :: (Int,Int,Int,Int)))
+       | Just Refl <- matchShapeType @sh @DIM5 = liftCtoA (FFT.dftGU (signOf mode) flags [4] `ix` (undefined :: (Int,Int,Int,Int,Int)))
        | otherwise = $internalError "fft" "only for 1D..5D inner-dimension transforms"
     --
     ix :: (a i r -> a i r) -> i -> (a i r -> a i r)

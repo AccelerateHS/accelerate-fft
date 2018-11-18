@@ -1,5 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 -- |
 -- Module      : Data.Array.Accelerate.Math.FFT.LLVM.Native.Ix
@@ -32,7 +33,7 @@ fromIxShapeRepr
     :: forall ix sh. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, Shape sh, Elt ix)
     => sh
     -> ix
-fromIxShapeRepr = liftToElt (go (eltType (undefined::ix)))
+fromIxShapeRepr = liftToElt (go (eltType @ix))
   where
     go :: forall ix'. TupleType ix' -> IxShapeRepr ix' -> ix'
     go TypeRunit                                                                    ()     = ()
@@ -46,7 +47,7 @@ toIxShapeRepr
     :: forall ix sh. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, Shape sh, Elt ix)
     => ix
     -> sh
-toIxShapeRepr = liftToElt (go (eltType (undefined::ix)))
+toIxShapeRepr = liftToElt (go (eltType @ix))
   where
     go :: forall ix'. TupleType ix' -> ix' -> IxShapeRepr ix'
     go TypeRunit        ()                                                                = ()

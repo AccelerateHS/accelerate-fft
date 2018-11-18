@@ -1,5 +1,6 @@
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
 -- |
@@ -46,12 +47,12 @@ withArrayData
     -> Stream
     -> (DevicePtr e -> LLVM PTX b)
     -> LLVM PTX b
-withArrayData NumericRfloat32 (AD_V2 ad) s k =
+withArrayData NumericRfloat32 (AD_Vec _ ad) s k =
   withDevicePtr ad $ \p -> do
     r <- k p
     e <- waypoint s
     return (Just e,r)
-withArrayData NumericRfloat64 (AD_V2 ad) s k =
+withArrayData NumericRfloat64 (AD_Vec _ ad) s k =
   withDevicePtr ad $ \p -> do
     r <- k p
     e <- waypoint s
@@ -74,7 +75,7 @@ matchShapeType
     -> sh'
     -> Maybe (sh :~: sh')
 matchShapeType _ _
-  | Just Refl <- matchTupleType (eltType (undefined::sh)) (eltType (undefined::sh'))
+  | Just Refl <- matchTupleType (eltType @sh) (eltType @sh')
   = gcast Refl
 
 matchShapeType _ _
