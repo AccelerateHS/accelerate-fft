@@ -54,10 +54,12 @@ library
       Data.Array.Accelerate.Math.DFT.Centre
       Data.Array.Accelerate.Math.DFT.Roots
 
+      -- Internals
+      Data.Array.Accelerate.Math.FFT.Type
+
   other-modules:
       Data.Array.Accelerate.Math.FFT.Adhoc
       Data.Array.Accelerate.Math.FFT.Mode
-      Data.Array.Accelerate.Math.FFT.Type
 
   hs-source-dirs:       src
   ghc-options:          -O2 -Wall -funbox-strict-fields
