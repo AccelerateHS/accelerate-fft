@@ -65,19 +65,3 @@ withLifetime' l k = do
   liftIO $ touchLifetime l
   return r
 
-
--- Match shape surface types
---
-{-# INLINE matchShapeType #-}
-matchShapeType
-    :: forall sh sh'. (Shape sh, Shape sh')
-    => sh
-    -> sh'
-    -> Maybe (sh :~: sh')
-matchShapeType _ _
-  | Just Refl <- matchTupleType (eltType @sh) (eltType @sh')
-  = gcast Refl
-
-matchShapeType _ _
-  = Nothing
-

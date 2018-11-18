@@ -4,6 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TupleSections       #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
 {-# LANGUAGE ViewPatterns        #-}
 -- |
@@ -30,6 +31,7 @@ import Data.Array.Accelerate.Math.FFT.Type
 import Data.Array.Accelerate.Math.FFT.LLVM.PTX.Base
 import Data.Array.Accelerate.Math.FFT.LLVM.PTX.Plans
 
+import Data.Array.Accelerate.Analysis.Match
 import Data.Array.Accelerate.Array.Sugar
 import Data.Array.Accelerate.Data.Complex
 import Data.Array.Accelerate.Error
@@ -43,7 +45,6 @@ import qualified Foreign.CUDA.FFT                                   as FFT
 import Control.Monad.Reader
 import Data.Hashable
 import Data.Proxy
-import Data.Typeable
 import System.IO.Unsafe
 
 
@@ -51,9 +52,9 @@ fft :: forall sh e. (Shape sh, Numeric e)
     => Mode
     -> ForeignAcc (Array (sh:.Int) (Complex e) -> Array (sh:.Int) (Complex e))
 fft mode
-  | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM0) = fft1D mode
-  | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM1) = ForeignAcc "cuda.fft2.many" $ fft' fft2DMany_plans mode
-  | Just Refl <- matchShapeType (undefined::sh) (undefined::DIM2) = ForeignAcc "cuda.fft3.many" $ fft' fft3DMany_plans mode
+  | Just Refl <- matchShapeType @sh @DIM0 = fft1D mode
+  | Just Refl <- matchShapeType @sh @DIM1 = ForeignAcc "cuda.fft2.many" $ fft' fft2DMany_plans mode
+  | Just Refl <- matchShapeType @sh @DIM2 = ForeignAcc "cuda.fft3.many" $ fft' fft3DMany_plans mode
   | otherwise = $internalError "fft" "only for 1D..3D inner-dimension transforms"
 
 fft1D :: Numeric e
