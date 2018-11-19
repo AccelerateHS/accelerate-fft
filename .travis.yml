@@ -99,6 +99,13 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install -y libffi7
 
+  # ghc-8.6 builds a broken version of c2hs
+  - |
+      if [ ${GHC%.*} == "8.6" -a ! -x "$(which c2hs)" ]; then
+        travis_retry stack --stack-yaml=stack-8.4.yaml setup --no-terminal --no-system-ghc
+        travis_retry stack --stack-yaml=stack-8.4.yaml install c2hs --fast --no-terminal
+      fi
+
   # build environment
   - echo "$(stack exec ghc -- --version) [$(stack exec ghc -- --print-project-git-commit-id 2> /dev/null || echo '?')]"
   - stack --version
