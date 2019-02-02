@@ -113,7 +113,7 @@ before_install:
 
 install:
   # how much do we have to do?
-  - export FLAGS="--fast --test --jobs=2 --no-terminal --no-copy-bins"
+  - export FLAGS="--fast --jobs=2 --no-terminal --no-copy-bins"
   - stack build $FLAGS --dry-run
 
   # bootstrap
@@ -121,11 +121,11 @@ install:
   # - travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --jobs=2 --no-terminal accelerate-llvm-native accelerate-llvm-ptx
 
   # build dependencies
-  - travis_retry travis_wait 60 stack build $FLAGS --only-dependencies --no-run-tests
+  - travis_retry travis_wait 60 stack build $FLAGS --only-dependencies --test --no-run-tests
 
 script:
   # build
-  - stack build $FLAGS $HADDOCK --no-run-tests
+  - stack build $FLAGS $HADDOCK --test --no-run-tests
 
   # run test suite (CPU backend only)
   # retry because the tests have intermittent failurs \:
