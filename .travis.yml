@@ -1,12 +1,7 @@
 # vim: nospell
 #
-# Basic template to test with GHC=[7.8, 7.10, 8.0], but also installs the
-# relevant version of LLVM as (a very old version of) the CUDA toolkit (4.0).
-# Caches the 'stack' build directory to speed subsequent compilations.
-#
 language: minimal
 dist: trusty
-sudo: required
 
 cache:
   timeout: 600
@@ -25,86 +20,90 @@ addons:
       - hvr-ghc
       - ubuntu-toolchain-r-test
       - llvm-toolchain-trusty
-      - llvm-toolchain-trusty-4.0
-      - llvm-toolchain-trusty-5.0
-      - llvm-toolchain-trusty-6.0
-      - sourceline: "deb http://deb.debian.org/debian experimental main"
-
     packages: &apt_packages
       - dpkg
-      - g++-4.8
+      - gcc-8
+      - g++-8
       - libgmp-dev
       - libfftw3-dev
       - happy-1.19.5
       - alex-3.1.7
 
 matrix:
+  fast_finish: true
   include:
-    - env: GHC=8.6.2 LLVM=6.0.0 CUDA=10.0.130-1
+    - env: GHC=8.6.3 LLVM=7.0.1 CUDA=10.0.130-1
       compiler: "GHC 8.6"
       addons:
         apt:
-          sources: *apt_sources
+          sources:
+            - *apt_sources
+            - llvm-toolchain-trusty-7
           packages:
             - *apt_packages
-            - llvm-6.0-dev
+            - llvm-7-dev
 
-    - env: GHC=8.4.2 LLVM=6.0.0 CUDA=8.0.61-1
+    - env: GHC=8.4.2 LLVM=6.0.1 CUDA=8.0.61-1
       compiler: "GHC 8.4"
       addons:
         apt:
-          sources: *apt_sources
+          sources:
+            - *apt_sources
+            - llvm-toolchain-trusty-6.0
           packages:
             - *apt_packages
             - llvm-6.0-dev
 
-    - env: GHC=8.2.2 LLVM=5.0.0 CUDA=8.0.61-1
+    - env: GHC=8.2.2 LLVM=5.0.2 CUDA=8.0.61-1
       compiler: "GHC 8.2"
       addons:
         apt:
-          sources: *apt_sources
+          sources:
+            - *apt_sources
+            - llvm-toolchain-trusty-5.0
           packages:
             - *apt_packages
             - llvm-5.0-dev
 
-    - env: GHC=8.0.2 LLVM=4.0.0 CUDA=8.0.61-1
+    - env: GHC=8.0.2 LLVM=4.0.1 CUDA=8.0.61-1
       compiler: "GHC 8.0"
       addons:
         apt:
-          sources: *apt_sources
+          sources:
+            - *apt_sources
+            - llvm-toolchain-trusty-4.0
           packages:
             - *apt_packages
             - llvm-4.0-dev
-
-    # - env: GHC=head CABAL=head LLVM=3.9.1
-    #   compiler: "GHC HEAD"
-    #   addons: { apt: { sources: [ hvr-ghc, ubuntu-toolchain-r-test ], packages: [ nvidia-cuda-toolkit, g++-4.8, ghc-head, cabal-install-head, happy-1.19.5, alex-3.1.7 ] }}
-
-  # allow_failures:
-  #   - env: GHC=head CABAL=head LLVM=3.9.0
-
-  fast_finish: true
 
 before_install:
   - export PATH=/opt/alex/3.1.7/bin:/opt/happy/1.19.5/bin:$PATH
   - source .travis/install-cuda-trusty.sh
   - source .travis/install-stack.sh
-  - source .travis/update-ghc-settings.sh
 
-  # GHC 8.4+ require libffi7
-  # - sudo apt-get install debian-archive-keyring
-  - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key 0x7638D0442B90D010
-  - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key 0x8B48AD6246925553
-  - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key 0x04EE7237B7D453EC
+  # llvm-hs requires new g++
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-8
+
+  # ghc-8.4+ require libffi7
+  - echo "deb http://deb.debian.org/debian experimental main" | sudo tee -a /etc/apt/sources.list
+  - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key 0x7638D0442B90D010 0x8B48AD6246925553 0x04EE7237B7D453EC
+  - sudo apt-get install debian-archive-keyring
   - sudo apt-get update
-  - sudo apt-get install -y libffi7
+  - sudo apt-get install libffi7
 
-  # ghc-8.6 builds a broken version of c2hs
+  # # ghc-8.6 builds a broken version of c2hs
+  # - |
+  #     if [ ${GHC%.*} == "8.6" -a ! -x "$(which c2hs)" ]; then
+  #       travis_retry stack --stack-yaml=stack-8.4.yaml setup --no-terminal --no-system-ghc
+  #       travis_retry stack --stack-yaml=stack-8.4.yaml install c2hs --fast --no-terminal
+  #     fi
+
+  # ghc-8.0/haddock crashes on dsImpSpecs
   - |
-      if [ ${GHC%.*} == "8.6" -a ! -x "$(which c2hs)" ]; then
-        travis_retry stack --stack-yaml=stack-8.4.yaml setup --no-terminal --no-system-ghc
-        travis_retry stack --stack-yaml=stack-8.4.yaml install c2hs --fast --no-terminal
-      fi
+      case ${GHC%.*} in
+        8.0) ;; # too slow ._.
+        *  ) export HADDOCK="--haddock --no-haddock-deps" ;;
+      esac
 
   # build environment
   - echo "$(stack exec ghc -- --version) [$(stack exec ghc -- --print-project-git-commit-id 2> /dev/null || echo '?')]"
@@ -114,18 +113,19 @@ before_install:
 
 install:
   # how much do we have to do?
-  - stack build --dry-run
+  - export FLAGS="--fast --test --jobs=2 --no-terminal --no-copy-bins"
+  - stack build $FLAGS --dry-run
 
   # bootstrap
   # - travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --jobs=2 --no-terminal accelerate
   # - travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --jobs=2 --no-terminal accelerate-llvm-native accelerate-llvm-ptx
 
   # build dependencies
-  - travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --jobs=2 --no-terminal --no-copy-bins
+  - travis_retry travis_wait 60 stack build $FLAGS --only-dependencies --no-run-tests
 
 script:
   # build
-  - stack build --fast --jobs=2 --test --no-run-tests --no-terminal --haddock --no-haddock-deps
+  - stack build $FLAGS $HADDOCK --no-run-tests
 
   # run test suite (CPU backend only)
   # retry because the tests have intermittent failurs \:
