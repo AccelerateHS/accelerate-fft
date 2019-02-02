@@ -18,7 +18,6 @@ module Data.Array.Accelerate.Math.FFT.LLVM.PTX.Base
 
 import Data.Array.Accelerate.Math.FFT.Type
 
-import Data.Array.Accelerate.Analysis.Match
 import Data.Array.Accelerate.Array.Data
 import Data.Array.Accelerate.Array.Sugar
 import Data.Array.Accelerate.Data.Complex
@@ -27,8 +26,6 @@ import Data.Array.Accelerate.Lifetime
 import Data.Array.Accelerate.LLVM.PTX.Foreign
 
 import Foreign.CUDA.Ptr                                             ( DevicePtr )
-
-import Data.Typeable
 
 
 {-# INLINE withArray #-}
