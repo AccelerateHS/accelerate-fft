@@ -114,7 +114,7 @@ before_install:
 install:
   # how much do we have to do?
   - export FLAGS="--fast --jobs=2 --no-terminal --no-copy-bins"
-  - stack build $FLAGS --dry-run
+  - stack build $FLAGS --only-dependencies --test --dry-run
 
   # bootstrap
   # - travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --jobs=2 --no-terminal accelerate
