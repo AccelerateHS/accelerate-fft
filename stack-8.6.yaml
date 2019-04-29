@@ -1,17 +1,17 @@
 # For more information, see: https://github.com/commercialhaskell/stack/blob/release/doc/yaml_configuration.md
 # vim: nospell
 
-resolver: lts-13.5
+resolver: lts-13.12
 
 packages:
 - .
 
 extra-deps:
 - git:    https://github.com/tmcdonell/accelerate.git
-  commit: dbb21b8f42e2051faf648d0a8718f9bf801a82d8
+  commit: 48f2e367f4a3fca7adb5d5b2f8f4f3466852f899
 
 - git:    https://github.com/tmcdonell/accelerate-llvm.git
-  commit: a8370e918182654d76225c5a805e891a9fd67d0c
+  commit: 7c23ea5ad9ab89c42fedc9a7a5f1f84f9345f77d
   subdirs:
     - accelerate-llvm
     - accelerate-llvm-native
@@ -20,7 +20,11 @@ extra-deps:
 - git:    https://github.com/tmcdonell/lens-accelerate.git
   commit: b74eb8098735b1ad6cff3c5655af03d3f29b9f8e
 
-- llvm-hs-7.0.1
+- git:    https://github.com/tmcdonell/cuda.git
+  commit: d345d4d01116ba3bf7a77a8fba827538921330bd
+
+- llvm-hs-8.0.0
+- llvm-hs-pure-8.0.0
 - tasty-hedgehog-0.2.0.0
 
 # Override default flag values for local packages and extra-deps
