@@ -164,13 +164,13 @@ fft3D_plans
 fft2DMany_plans :: Plans (DIM2, FFT.Type)
 fft2DMany_plans
   = unsafePerformIO
-  $ createPlan (\(Z:.h:.w, t) -> FFT.planMany [h,w] Nothing Nothing t 1)
+  $ createPlan (\(Z:.h:.w, t) -> FFT.planMany [w] Nothing Nothing t h)
                (\(Z:.h:.w, t) -> fromEnum t `hashWithSalt` h `hashWithSalt` w)
 
 {-# NOINLINE fft3DMany_plans #-}
 fft3DMany_plans :: Plans (DIM3, FFT.Type)
 fft3DMany_plans
   = unsafePerformIO
-  $ createPlan (\(Z:.d:.h:.w, t) -> FFT.planMany [d,h,w] Nothing Nothing t 1)
+  $ createPlan (\(Z:.d:.h:.w, t) -> FFT.planMany [w] Nothing Nothing t (d*h))
                (\(Z:.d:.h:.w, t) -> fromEnum t `hashWithSalt` d `hashWithSalt` h `hashWithSalt` w)
 
