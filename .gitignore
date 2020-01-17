@@ -2,3 +2,4 @@
 *.swp
 stack.yaml
 /.stack-work
+/stack.yaml.lock
