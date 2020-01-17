@@ -24,13 +24,15 @@
 module Data.Array.Accelerate.Math.FFT.Adhoc ( fft )
   where
 
-import Data.Array.Accelerate                                        hiding ( transpose )
+import Data.Array.Accelerate                                        hiding ( transpose, fromInteger )
 import Data.Array.Accelerate.Data.Bits
 import Data.Array.Accelerate.Data.Complex
 import Data.Array.Accelerate.Control.Lens.Shape
 
 import Data.Array.Accelerate.Math.FFT.Mode
 import Data.Array.Accelerate.Math.FFT.Type
+
+import qualified Prelude                                            as P
 
 
 fft :: (Shape sh, Slice sh, Numeric e)
@@ -602,4 +604,7 @@ sumAndConvolve4 (a0,a1,a2,a3) (b0,b1,b2,b3) =
       d3     = ab0123 - c1
   in
   ((sa0123, sb0123), (d0, d1, d2, d3))
+
+fromInteger :: Num a => P.Integer -> Exp a
+fromInteger = P.fromInteger
 
