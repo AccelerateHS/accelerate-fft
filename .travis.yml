@@ -74,11 +74,7 @@ before_install:
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-8
 
   # ghc-8.4+ require libffi7
-  - echo "deb http://deb.debian.org/debian experimental main" | sudo tee -a /etc/apt/sources.list
-  - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key 0x7638D0442B90D010 0x8B48AD6246925553 0x04EE7237B7D453EC
-  - sudo apt-get install debian-archive-keyring
-  - sudo apt-get update
-  - sudo apt-get install libffi7
+  - export LD_LIBRARY_PATH=$(stack exec ghc -- --print-libdir)/rts:$LD_LIBRARY_PATH
 
   # ghc-8.6 builds a broken version of c2hs
   # - |
