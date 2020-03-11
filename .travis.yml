@@ -103,20 +103,18 @@ install:
 
   # bootstrap
   # - travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --jobs=2 --no-terminal accelerate
-  - travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --jobs=2 --no-terminal accelerate-llvm-native accelerate-llvm-ptx
+  # - travis_retry travis_wait 60 stack build --test --only-dependencies --no-run-tests --fast --jobs=2 --no-terminal accelerate-llvm-native accelerate-llvm-ptx
 
   # build dependencies
-  # - travis_retry travis_wait 60 stack build $FLAGS --only-dependencies --test --no-run-tests
+  - travis_retry travis_wait 60 stack build $FLAGS --only-dependencies --test --no-run-tests
 
 script:
-  - true
-
   # build
-  # - travis_retry stack build $FLAGS $HADDOCK --test --no-run-tests
+  - travis_retry stack build $FLAGS $HADDOCK --test --no-run-tests
 
   # run test suite (CPU backend only)
   # retry because the tests have intermittent failurs \:
-  # - travis_retry stack test accelerate-fft:test-llvm-native --test-arguments='--timeout=30s --hedgehog-tests=50 --hedgehog-shrinks=0 --num-threads=1'
+  - travis_retry stack test accelerate-fft:test-llvm-native --test-arguments='--timeout=30s --hedgehog-tests=50 --hedgehog-shrinks=0 --num-threads=1'
 
 after_success:
   - source .travis/update-accelerate-buildbot.sh
