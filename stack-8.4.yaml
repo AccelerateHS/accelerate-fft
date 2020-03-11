@@ -23,6 +23,7 @@ extra-deps:
 - cuda-0.10.1.0
 - cufft-0.9.0.1
 - nvvm-0.9.0.0
+- primitive-0.6.4.0
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
