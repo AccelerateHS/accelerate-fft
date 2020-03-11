@@ -7,23 +7,22 @@ packages:
 - .
 
 extra-deps:
-- git:    https://github.com/tmcdonell/accelerate.git
-  commit: 2693873fbf7f94ee408d9f2017ff47251ee064ef
+- github: tmcdonell/accelerate
+  commit: cc78ca8ba7397b445418e0646111753ec86bfcdd
 
-- git:    https://github.com/tmcdonell/accelerate-llvm.git
-  commit: 0f92cd6ad324f87378bffbb9b74bbd0722cee417
+- github: tmcdonell/accelerate-llvm
+  commit: 46156ed599be5093aceed685711dc0fa3700f5e6
   subdirs:
     - accelerate-llvm
     - accelerate-llvm-native
     - accelerate-llvm-ptx
 
-- git:    https://github.com/tmcdonell/lens-accelerate.git
+- github: tmcdonell/lens-accelerate
   commit: b74eb8098735b1ad6cff3c5655af03d3f29b9f8e
 
-- cuda-0.10.0.0
+- cuda-0.10.1.0
 - cufft-0.9.0.1
 - nvvm-0.9.0.0
-- primitive-0.6.4.0
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
