@@ -12,9 +12,19 @@
 
 </div>
 
-FFT library for the embedded array language Accelerate. This will use optimised
-backend implementations where available. For details on Accelerate, refer to the
-[main repository][GitHub].
+FFT library for the embedded array language Accelerate. For details on
+Accelerate, refer to the [main repository][GitHub].
 
-  [GitHub]: https://github.com/AccelerateHS/accelerate
+The following build flags control whether optimised implementations are used.
+Note that enabling these (which is the default) will require the corresponding
+Accelerate backend as a dependency:
+
+  - `llvm-ptx`: For NVIDIA GPUs
+  - `llvm-cpu`: For multicore CPUs
+
+Contributions and bug reports are welcome!<br>
+Please feel free to contact me through GitHub or [gitter.im][gitter.im].
+
+  [GitHub]:       https://github.com/AccelerateHS/accelerate
+  [gitter.im]:    https://gitter.im/AccelerateHS/Lobby
 
