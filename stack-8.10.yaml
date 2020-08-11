@@ -1,0 +1,66 @@
+# Some commonly used options have been documented as comments in this file.
+# For advanced use and comprehensive documentation of the format, please see:
+# https://docs.haskellstack.org/en/stable/yaml_configuration/
+
+resolver: nightly-2020-07-16
+
+packages:
+- .
+
+extra-deps:
+- github: tmcdonell/accelerate
+  commit: 9883779db77d88480dc5adbc9d9b19d839f201cc
+
+- github: tmcdonell/accelerate-llvm
+  commit: b4fea3244424f2709feaca9dc2e5588d2e79e424
+  subdirs:
+    - accelerate-llvm
+    - accelerate-llvm-native
+    - accelerate-llvm-ptx
+
+- github: tmcdonell/cuda
+  commit: b9c3d1bb198fd097818a63d0e9d87cf8ad3c0b22
+
+- github: tmcdonell/nvvm
+  commit: 4b0ee7b1644a71f56a4d024dda3d40f225ac1f05
+
+- github: tmcdonell/cufft
+  commit: 8acbffba55f953d15ee8edf5626da95119ecd5f3
+
+- github: tmcdonell/lens-accelerate
+  commit: 4a652bc0f0574cd5e715b2f523a41107a11dbcbe
+
+# Extra per-package and global ghc options
+# Required because Cabal-3 is a broken POS
+ghc-options:
+  llvm-hs: -optcxx=-std=c++11
+
+# Override default flag values for local packages and extra-deps
+# flags:
+#   accelerate-fft:
+#     llvm-cpu: true
+#     llvm-ptx: true
+
+# Extra package databases containing global packages
+# extra-package-dbs: []
+
+# Control whether we use the GHC we find on the path
+# system-ghc: true
+#
+# Require a specific version of stack, using version ranges
+# require-stack-version: -any # Default
+# require-stack-version: ">=1.9"
+#
+# Override the architecture used by stack, especially useful on Windows
+# arch: i386
+# arch: x86_64
+#
+# Extra directories used by stack for building
+# extra-include-dirs: [/path/to/dir]
+# extra-lib-dirs: [/path/to/dir]
+#
+# Allow a newer minor version of GHC than the snapshot specifies
+# compiler-check: newer-minor
+#
+# vim: nospell
+

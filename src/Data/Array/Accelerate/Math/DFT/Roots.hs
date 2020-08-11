@@ -25,7 +25,7 @@ import Data.Array.Accelerate.Data.Complex
 -- | Calculate the roots of unity for the forward transform
 --
 rootsOfUnity
-    :: (Shape sh, Slice sh, Elt (Complex e), A.Floating e, A.FromIntegral Int e)
+    :: (Shape sh, Slice sh, A.Floating e, A.FromIntegral Int e)
     => Exp (sh :. Int)
     -> Acc (Array (sh:.Int) (Complex e))
 rootsOfUnity sh =
@@ -40,7 +40,7 @@ rootsOfUnity sh =
 -- | Calculate the roots of unity for an inverse transform
 --
 inverseRootsOfUnity
-    :: (Shape sh, Slice sh, Elt (Complex e), A.Floating e, A.FromIntegral Int e)
+    :: (Shape sh, Slice sh, A.Floating e, A.FromIntegral Int e)
     => Exp (sh :. Int)
     -> Acc (Array (sh:.Int) (Complex e))
 inverseRootsOfUnity sh =

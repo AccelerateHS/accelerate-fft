@@ -1,32 +1,36 @@
 # For more information, see: https://github.com/commercialhaskell/stack/blob/release/doc/yaml_configuration.md
 # vim: nospell
 
-resolver: lts-11.22
+resolver: lts-16.5
 
 packages:
 - .
 
 extra-deps:
 - github: tmcdonell/accelerate
-  commit: cc78ca8ba7397b445418e0646111753ec86bfcdd
+  commit: 9883779db77d88480dc5adbc9d9b19d839f201cc
 
 - github: tmcdonell/accelerate-llvm
-  commit: 46156ed599be5093aceed685711dc0fa3700f5e6
+  commit: b4fea3244424f2709feaca9dc2e5588d2e79e424
   subdirs:
     - accelerate-llvm
     - accelerate-llvm-native
     - accelerate-llvm-ptx
 
-- github: tmcdonell/lens-accelerate
-  commit: b74eb8098735b1ad6cff3c5655af03d3f29b9f8e
+- github: tmcdonell/cuda
+  commit: b9c3d1bb198fd097818a63d0e9d87cf8ad3c0b22
 
-- cuda-0.10.1.0
-- cufft-0.9.0.1
-- half-0.3
-- nvvm-0.9.0.0
+- github: tmcdonell/nvvm
+  commit: 4b0ee7b1644a71f56a4d024dda3d40f225ac1f05
+
+- github: tmcdonell/lens-accelerate
+  commit: 8a17f332e36bf32a9a4667029f24e028678689b1
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
+
+# Extra global and per-package GHC options
+# ghc-options: {}
 
 # Extra package databases containing global packages
 # extra-package-dbs: []

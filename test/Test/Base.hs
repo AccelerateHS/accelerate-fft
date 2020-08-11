@@ -13,8 +13,10 @@ module Test.Base
   where
 
 import Data.Array.Accelerate                                        ( Z(..), (:.)(..), DIM1, DIM2, DIM3, Shape, Elt, Acc, Array )
-import Data.Array.Accelerate.Array.Sugar                            ( fromList, size )
-import Data.Array.Accelerate.Trafo                                  ( Afunction, AfunctionR )
+import Data.Array.Accelerate.Sugar.Array                            ( fromList )
+import Data.Array.Accelerate.Sugar.Shape                            ( size )
+import Data.Array.Accelerate.Trafo                                  ( Afunction )
+import Data.Array.Accelerate.Trafo.Sharing                          ( AfunctionR )
 import Data.Array.Accelerate.Data.Complex
 import Data.Array.Accelerate.Math.FFT
 

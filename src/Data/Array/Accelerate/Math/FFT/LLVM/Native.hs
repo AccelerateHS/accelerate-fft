@@ -1,7 +1,6 @@
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE PatternGuards       #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
@@ -29,83 +28,86 @@ import Data.Array.Accelerate.Math.FFT.Type
 import Data.Array.Accelerate.Math.FFT.LLVM.Native.Ix
 import Data.Array.Accelerate.Math.FFT.LLVM.Native.Base
 
-import Data.Array.Accelerate
 import Data.Array.Accelerate.Analysis.Match
-import Data.Array.Accelerate.Array.Sugar
 import Data.Array.Accelerate.Data.Complex
 import Data.Array.Accelerate.Error
+import Data.Array.Accelerate.Representation.Array
+import Data.Array.Accelerate.Representation.Shape
+import Data.Array.Accelerate.Sugar.Elt
+
+import Data.Primitive.Vec
 
 import Data.Array.Accelerate.LLVM.Native.Foreign
 
+import Data.Proxy
 import Data.Array.CArray                                            ( CArray )
 import Math.FFT.Base                                                ( FFTWReal )
 import Prelude                                                      as P
 import qualified Math.FFT                                           as FFT
 
 
-fft :: forall sh e. (Shape sh, Numeric e)
+fft :: forall sh e. HasCallStack
     => Mode
-    -> ForeignAcc (Array sh (Complex e) -> Array sh (Complex e))
-fft mode
-  = ForeignAcc (nameOf mode (undefined::sh))
-  $ case numericR::NumericR e of
+    -> ShapeR sh
+    -> NumericR e
+    -> ForeignAcc (Array sh (Vec2 e) -> Array sh (Vec2 e))
+fft mode shR eR
+  = ForeignAcc (nameOf mode shR)
+  $ case eR of
       NumericRfloat32 -> go
       NumericRfloat64 -> go
   where
-    go :: FFTWReal e => Array sh (Complex e) -> Par Native (Future (Array sh (Complex e)))
-    go | Just Refl <- matchShapeType @sh @DIM1 = liftCtoA (FFT.dftGU (signOf mode) flags [0] `ix` (undefined :: (Int)))
-       | Just Refl <- matchShapeType @sh @DIM2 = liftCtoA (FFT.dftGU (signOf mode) flags [1] `ix` (undefined :: (Int,Int)))
-       | Just Refl <- matchShapeType @sh @DIM3 = liftCtoA (FFT.dftGU (signOf mode) flags [2] `ix` (undefined :: (Int,Int,Int)))
-       | Just Refl <- matchShapeType @sh @DIM4 = liftCtoA (FFT.dftGU (signOf mode) flags [3] `ix` (undefined :: (Int,Int,Int,Int)))
-       | Just Refl <- matchShapeType @sh @DIM5 = liftCtoA (FFT.dftGU (signOf mode) flags [4] `ix` (undefined :: (Int,Int,Int,Int,Int)))
-       | otherwise = $internalError "fft" "only for 1D..5D inner-dimension transforms"
+    go :: FFTWReal e => Array sh (Vec2 e) -> Par Native (Future (Array sh (Vec2 e)))
+    go | Just Refl <- matchShapeR shR dim1 = liftCtoA shR eR (FFT.dftGU (signOf mode) flags [0] `ix` (Proxy :: Proxy (Int)))
+       | Just Refl <- matchShapeR shR dim2 = liftCtoA shR eR (FFT.dftGU (signOf mode) flags [1] `ix` (Proxy :: Proxy (Int,Int)))
+       | Just Refl <- matchShapeR shR dim3 = liftCtoA shR eR (FFT.dftGU (signOf mode) flags [2] `ix` (Proxy :: Proxy (Int,Int,Int)))
+       | Just Refl <- matchShapeR shR dim4 = liftCtoA shR eR (FFT.dftGU (signOf mode) flags [3] `ix` (Proxy :: Proxy (Int,Int,Int,Int)))
+       | Just Refl <- matchShapeR shR dim5 = liftCtoA shR eR (FFT.dftGU (signOf mode) flags [4] `ix` (Proxy :: Proxy (Int,Int,Int,Int,Int)))
+       | otherwise = internalError "only for 1D..5D inner-dimension transforms"
     --
-    ix :: (a i r -> a i r) -> i -> (a i r -> a i r)
+    ix :: (a i r -> a i r) -> proxy i -> (a i r -> a i r)
     ix f _ = f
 
+    dim4 = ShapeRsnoc dim3
+    dim5 = ShapeRsnoc dim4
 
-fft1D :: forall e. Numeric e
-      => Mode
-      -> ForeignAcc (Array DIM1 (Complex e) -> Array DIM1 (Complex e))
-fft1D mode
-  = ForeignAcc (nameOf mode (undefined::DIM1))
-  $ case numericR::NumericR e of
-      NumericRfloat32 -> liftCtoA go
-      NumericRfloat64 -> liftCtoA go
+fft1D :: Mode -> NumericR e -> ForeignAcc (Array DIM1 (Vec2 e) -> Array DIM1 (Vec2 e))
+fft1D mode eR
+  = ForeignAcc (nameOf mode dim1)
+  $ case eR of
+      NumericRfloat32 -> liftCtoA dim1 eR go
+      NumericRfloat64 -> liftCtoA dim1 eR go
   where
     go :: FFTWReal r => CArray Int (Complex r) -> CArray Int (Complex r)
     go = FFT.dftGU (signOf mode) flags [0]
 
-fft2D :: forall e. Numeric e
-      => Mode
-      -> ForeignAcc (Array DIM2 (Complex e) -> Array DIM2 (Complex e))
-fft2D mode
-  = ForeignAcc (nameOf mode (undefined::DIM2))
-  $ case numericR::NumericR e of
-      NumericRfloat32 -> liftCtoA go
-      NumericRfloat64 -> liftCtoA go
+fft2D :: Mode -> NumericR e -> ForeignAcc (Array DIM2 (Vec2 e) -> Array DIM2 (Vec2 e))
+fft2D mode eR
+  = ForeignAcc (nameOf mode dim2)
+  $ case eR of
+      NumericRfloat32 -> liftCtoA dim2 eR go
+      NumericRfloat64 -> liftCtoA dim2 eR go
   where
     go :: FFTWReal r => CArray (Int,Int) (Complex r) -> CArray (Int,Int) (Complex r)
     go = FFT.dftGU (signOf mode) flags [0,1]
 
-fft3D :: forall e. Numeric e
-      => Mode
-      -> ForeignAcc (Array DIM3 (Complex e) -> Array DIM3 (Complex e))
-fft3D mode
-  = ForeignAcc (nameOf mode (undefined::DIM3))
-  $ case numericR::NumericR e of
-      NumericRfloat32 -> liftCtoA go
-      NumericRfloat64 -> liftCtoA go
+fft3D :: Mode -> NumericR e -> ForeignAcc (Array DIM3 (Vec2 e) -> Array DIM3 (Vec2 e))
+fft3D mode eR
+  = ForeignAcc (nameOf mode dim3)
+  $ case eR of
+      NumericRfloat32 -> liftCtoA dim3 eR go
+      NumericRfloat64 -> liftCtoA dim3 eR go
   where
     go :: FFTWReal r => CArray (Int,Int,Int) (Complex r) -> CArray (Int,Int,Int) (Complex r)
     go = FFT.dftGU (signOf mode) flags [0,1,2]
 
-{-# INLINE liftCtoA #-}
 liftCtoA
-    :: forall ix sh e. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, Shape sh, Elt ix, Numeric e)
-    => (CArray ix (Complex e) -> CArray ix (Complex e))
-    -> Array sh (Complex e)
-    -> Par Native (Future (Array sh (Complex e)))
-liftCtoA f a =
-  newFull =<< liftIO (withCArray a (fromCArray . f))
+    :: forall ix sh e. (IxShapeR (EltR ix) ~ sh, Elt ix)
+    => ShapeR sh
+    -> NumericR e
+    -> (CArray ix (Complex e) -> CArray ix (Complex e))
+    -> Array sh (Vec2 e)
+    -> Par Native (Future (Array sh (Vec2 e)))
+liftCtoA shR eR f a =
+  newFull =<< liftIO (withCArray shR eR a (fromCArray shR eR . f))
 

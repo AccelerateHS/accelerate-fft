@@ -1,5 +1,4 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 -- |
@@ -15,44 +14,45 @@
 module Data.Array.Accelerate.Math.FFT.LLVM.Native.Ix
   where
 
-import Data.Array.Accelerate.Array.Sugar
 import Data.Array.Accelerate.Error
+import Data.Array.Accelerate.Representation.Type
+import Data.Array.Accelerate.Sugar.Elt
 import Data.Array.Accelerate.Type
 
 
 -- Converting between Accelerate multidimensional shapes/indices and those used
 -- by the CArray package (Data.Ix)
 --
-type family IxShapeRepr e where
-  IxShapeRepr ()    = ()
-  IxShapeRepr Int   = ((),Int)
-  IxShapeRepr (t,h) = (IxShapeRepr t, h)
+type family IxShapeR e where
+  IxShapeR ()    = ()
+  IxShapeR Int   = ((),Int)
+  IxShapeR (t,h) = (IxShapeR t, h)
 
-{-# INLINE fromIxShapeRepr #-}
-fromIxShapeRepr
-    :: forall ix sh. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, Shape sh, Elt ix)
+{-# INLINE fromIxShapeR #-}
+fromIxShapeR
+    :: forall ix sh. (HasCallStack, IxShapeR (EltR ix) ~ sh, Elt ix)
     => sh
     -> ix
-fromIxShapeRepr = liftToElt (go (eltType @ix))
+fromIxShapeR = toElt . go (eltR @ix)
   where
-    go :: forall ix'. TupleType ix' -> IxShapeRepr ix' -> ix'
-    go TypeRunit                                                                    ()     = ()
-    go (TypeRpair tt _)                                                             (t, h) = (go tt t, h)
-    go (TypeRscalar (SingleScalarType (NumSingleType (IntegralNumType TypeInt{})))) ((),h) = h
+    go :: forall ix'. TypeR ix' -> IxShapeR ix' -> ix'
+    go TupRunit                                                                    ()     = ()
+    go (TupRpair tt _)                                                             (t, h) = (go tt t, h)
+    go (TupRsingle (SingleScalarType (NumSingleType (IntegralNumType TypeInt{})))) ((),h) = h
     go _ _
-      = $internalError "fromIxShapeRepr" "expected Int dimensions"
+      = internalError "expected Int dimensions"
 
-{-# INLINE toIxShapeRepr #-}
-toIxShapeRepr
-    :: forall ix sh. (IxShapeRepr (EltRepr ix) ~ EltRepr sh, Shape sh, Elt ix)
+{-# INLINE toIxShapeR #-}
+toIxShapeR
+    :: forall ix sh. (HasCallStack, IxShapeR (EltR ix) ~ sh, Elt ix)
     => ix
     -> sh
-toIxShapeRepr = liftToElt (go (eltType @ix))
+toIxShapeR = go (eltR @ix) . fromElt
   where
-    go :: forall ix'. TupleType ix' -> ix' -> IxShapeRepr ix'
-    go TypeRunit        ()                                                                = ()
-    go (TypeRscalar     (SingleScalarType (NumSingleType (IntegralNumType TypeInt{})))) h = ((), h)
-    go (TypeRpair tt _) (t, h)                                                            = (go tt t, h)
+    go :: forall ix'. TypeR ix' -> ix' -> IxShapeR ix'
+    go TupRunit        ()                                                                = ()
+    go (TupRsingle     (SingleScalarType (NumSingleType (IntegralNumType TypeInt{})))) h = ((), h)
+    go (TupRpair tt _) (t, h)                                                            = (go tt t, h)
     go _ _
-      = $internalError "toIxShapeRepr" "not a valid Data.Ix index"
+      = internalError "not a valid Data.Ix index"
 

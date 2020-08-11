@@ -19,9 +19,10 @@ module Data.Array.Accelerate.Math.FFT.LLVM.PTX.Base
 import Data.Array.Accelerate.Math.FFT.Type
 
 import Data.Array.Accelerate.Array.Data
-import Data.Array.Accelerate.Array.Sugar
-import Data.Array.Accelerate.Data.Complex
 import Data.Array.Accelerate.Lifetime
+import Data.Array.Accelerate.Representation.Array
+import Data.Array.Accelerate.Type
+import Data.Primitive.Vec
 
 import Data.Array.Accelerate.LLVM.PTX.Foreign
 
@@ -30,27 +31,27 @@ import Foreign.CUDA.Ptr                                             ( DevicePtr 
 
 {-# INLINE withArray #-}
 withArray
-    :: forall sh e b. Numeric e
-    => Array sh (Complex e)
+    :: NumericR e
+    -> Array sh (Vec2 e)
     -> Stream
     -> (DevicePtr e -> LLVM PTX b)
     -> LLVM PTX b
-withArray (Array _ adata) = withArrayData (numericR::NumericR e) adata
+withArray eR (Array _ adata) = withArrayData eR adata
 
 {-# INLINE withArrayData #-}
 withArrayData
     :: NumericR e
-    -> ArrayData (EltRepr (Complex e))
+    -> ArrayData (Vec2 e)
     -> Stream
     -> (DevicePtr e -> LLVM PTX b)
     -> LLVM PTX b
-withArrayData NumericRfloat32 (AD_Vec _ ad) s k =
-  withDevicePtr ad $ \p -> do
+withArrayData NumericRfloat32 ad s k =
+  withDevicePtr (singleType @Float) ad $ \p -> do
     r <- k p
     e <- waypoint s
     return (Just e,r)
-withArrayData NumericRfloat64 (AD_Vec _ ad) s k =
-  withDevicePtr ad $ \p -> do
+withArrayData NumericRfloat64 ad s k =
+  withDevicePtr (singleType @Double) ad $ \p -> do
     r <- k p
     e <- waypoint s
     return (Just e, r)

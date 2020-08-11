@@ -18,6 +18,8 @@ module Data.Array.Accelerate.Math.FFT.Type
 
 import Data.Array.Accelerate                                        as A
 import Data.Array.Accelerate.Data.Complex                           as A
+import Data.Array.Accelerate.Sugar.Elt
+import Data.Primitive.Vec
 
 
 -- For explicit dictionary reification, to discover the concrete type the
@@ -27,7 +29,7 @@ data NumericR a where
   NumericRfloat32 :: NumericR Float
   NumericRfloat64 :: NumericR Double
 
-class (RealFloat a, FromIntegral Int a, Elt (Complex a)) => Numeric a where
+class (RealFloat a, FromIntegral Int a, Elt a, EltR (Complex a) ~ Vec2 a) => Numeric a where
   numericR :: NumericR a
 
 instance Numeric Float where

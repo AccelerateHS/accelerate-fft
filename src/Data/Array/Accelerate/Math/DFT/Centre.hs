@@ -35,7 +35,7 @@ import Data.Array.Accelerate.Data.Complex
 -- | Apply the centring transform to a vector
 --
 centre1D
-    :: (Elt (Complex e), A.RealFloat e, A.FromIntegral Int e)
+    :: (A.RealFloat e, A.FromIntegral Int e)
     => Acc (Array DIM1 (Complex e))
     -> Acc (Array DIM1 (Complex e))
 centre1D arr
@@ -46,7 +46,7 @@ centre1D arr
 -- | Apply the centring transform to a matrix
 --
 centre2D
-    :: (Elt (Complex e), A.RealFloat e, A.FromIntegral Int e)
+    :: (A.RealFloat e, A.FromIntegral Int e)
     => Acc (Array DIM2 (Complex e))
     -> Acc (Array DIM2 (Complex e))
 centre2D arr
@@ -57,7 +57,7 @@ centre2D arr
 -- | Apply the centring transform to a 3D array
 --
 centre3D
-    :: (Elt (Complex e), A.RealFloat e, A.FromIntegral Int e)
+    :: (A.RealFloat e, A.FromIntegral Int e)
     => Acc (Array DIM3 (Complex e))
     -> Acc (Array DIM3 (Complex e))
 centre3D arr
@@ -67,9 +67,9 @@ centre3D arr
 
 
 -- | Apply the shifting transform to a vector
---  
+--
 shift1D :: Elt e => Acc (Vector e) -> Acc (Vector e)
-shift1D arr = backpermute sh p arr  
+shift1D arr = backpermute sh p arr
       where
         sh      = shape arr
         n       = indexHead sh
@@ -78,12 +78,12 @@ shift1D arr = backpermute sh p arr
         roll i  = (i+shift) `rem` n
         p       = ilift1 roll
 
--- | The inverse of the shift1D function, such that 
+-- | The inverse of the shift1D function, such that
 -- > ishift1D (shift1D v) = ishift1D (shift1D v) = v
 -- for all vectors
---          
+--
 ishift1D :: Elt e => Acc (Vector e) -> Acc (Vector e)
-ishift1D arr = backpermute sh p arr  
+ishift1D arr = backpermute sh p arr
       where
         sh      = shape arr
         n       = indexHead sh
@@ -127,7 +127,7 @@ ishift2D arr
                   ((x + shiftw) `rem` w)
 
 -- | Apply the shifting transform to a 3D array
---                  
+--
 shift3D :: Elt e => Acc (Array DIM3 e) -> Acc (Array DIM3 e)
 shift3D arr
   = backpermute sh p arr
