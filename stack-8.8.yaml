@@ -23,6 +23,9 @@ extra-deps:
 - github: tmcdonell/nvvm
   commit: 4b0ee7b1644a71f56a4d024dda3d40f225ac1f05
 
+- github: tmcdonell/cufft
+  commit: 8acbffba55f953d15ee8edf5626da95119ecd5f3
+
 - github: tmcdonell/lens-accelerate
   commit: 8a17f332e36bf32a9a4667029f24e028678689b1
 
