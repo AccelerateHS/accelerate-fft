@@ -2,33 +2,20 @@
 # For advanced use and comprehensive documentation of the format, please see:
 # https://docs.haskellstack.org/en/stable/yaml_configuration/
 
-resolver: nightly-2020-08-23
+resolver: nightly-2020-08-26
 
 packages:
 - .
 
 extra-deps:
-- github: tmcdonell/accelerate
-  commit: d7caff6f9153b93ca467360f8f3cdc5975685c2f
-
-- github: tmcdonell/accelerate-llvm
-  commit: d1b3be2a018933cd692f11babb245d042c8e003c
-  subdirs:
-    - accelerate-llvm
-    - accelerate-llvm-native
-    - accelerate-llvm-ptx
-
-- github: tmcdonell/cuda
-  commit: b9c3d1bb198fd097818a63d0e9d87cf8ad3c0b22
-
-- github: tmcdonell/nvvm
-  commit: 4b0ee7b1644a71f56a4d024dda3d40f225ac1f05
-
-- github: tmcdonell/cufft
-  commit: 8acbffba55f953d15ee8edf5626da95119ecd5f3
-
-- github: tmcdonell/lens-accelerate
-  commit: 4a652bc0f0574cd5e715b2f523a41107a11dbcbe
+- accelerate-1.3.0.0
+- accelerate-llvm-1.3.0.0
+- accelerate-llvm-native-1.3.0.0
+- accelerate-llvm-ptx-1.3.0.0
+- cuda-0.10.2.0
+- cufft-0.10.0.0
+- lens-accelerate-0.3.0.0
+- nvvm-0.10.0.0
 
 # Extra per-package and global ghc options
 # Required because Cabal-3 is a broken POS
