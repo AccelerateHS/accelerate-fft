@@ -8,8 +8,8 @@ Synopsis:               FFT using the Accelerate library
 Description:
   Rank-polymorphic discrete Fourier transform (DFT), computed with a fast
   Fourier transform (FFT) algorithm using the Accelerate library. Note that
-  optimised implementations are available via foreign libraries, but must be
-  explicitly enabled.
+  optimised implementations are available via foreign libraries (enabled by
+  default).
   .
   Refer to the main /Accelerate/ package for more information:
   <http://hackage.haskell.org/package/accelerate>
@@ -18,10 +18,11 @@ Description:
 License:                BSD3
 License-file:           LICENSE
 Author:                 The Accelerate Team
+Maintainer:             Trevor L. McDonell <trevor.mcdonell@gmail.com>
 Homepage:               https://github.com/AccelerateHS/accelerate-fft
 Bug-reports:            https://github.com/AccelerateHS/accelerate/issues
 
-Category:               Compilers/Interpreters, Concurrency, Data, Parallelism
+Category:               Accelerate, Math
 Stability:              Experimental
 
 extra-source-files:
