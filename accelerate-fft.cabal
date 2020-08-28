@@ -17,11 +17,7 @@ Description:
 
 License:                BSD3
 License-file:           LICENSE
-Author:                 Manuel M T Chakravarty,
-                        Gabriele Keller,
-                        Trevor L. McDonell,
-                        Robert Clifton-Everest
-Maintainer:             Trevor L. McDonell <tmcdonell@cse.unsw.edu.au>
+Author:                 The Accelerate Team
 Homepage:               https://github.com/AccelerateHS/accelerate-fft
 Bug-reports:            https://github.com/AccelerateHS/accelerate/issues
 
