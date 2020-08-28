@@ -4,16 +4,16 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
 {-# LANGUAGE ViewPatterns        #-}
 -- |
 -- Module      : Data.Array.Accelerate.Math.FFT
--- Copyright   : [2012..2017] Manuel M T Chakravarty, Gabriele Keller, Trevor L. McDonell
---               [2013..2017] Robert Clifton-Everest
+-- Copyright   : [2012..2020] The Accelerate Team
 -- License     : BSD3
 --
--- Maintainer  : Trevor L. McDonell <tmcdonell@cse.unsw.edu.au>
+-- Maintainer  : Trevor L. McDonell <trevor.mcdonell@gmail.com>
 -- Stability   : experimental
 -- Portability : non-portable (GHC extensions)
 --
@@ -38,7 +38,7 @@ import Data.Array.Accelerate                                        as A
 import Data.Array.Accelerate.Data.Complex
 import Data.Array.Accelerate.Math.FFT.Type
 import Data.Array.Accelerate.Math.FFT.Mode
-import qualified Data.Array.Accelerate.Array.Sugar                  as A ( rank )
+import qualified Data.Array.Accelerate.Sugar.Shape                  as A ( rank, shapeR )
 import qualified Data.Array.Accelerate.Math.FFT.Adhoc               as Adhoc
 
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
@@ -67,13 +67,15 @@ fft :: forall sh e. (Shape sh, Slice sh, Numeric e)
 fft mode arr
   = let
         scale = A.fromIntegral (indexHead (shape arr))
-        rank  = A.rank (undefined :: sh:.Int)
+        rank  = A.rank @(sh:.Int)
+        shR   = A.shapeR @(sh:.Int)
+        eR    = numericR @e
         go    =
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
-                  (if rank P.<= 5 then foreignAcc (Native.fft mode) else id) $
+                  (if rank P.<= 5 then foreignAcc (Native.fft mode shR eR) else id) $
 #endif
 #ifdef ACCELERATE_LLVM_PTX_BACKEND
-                  (if rank P.<= 3 then foreignAcc (PTX.fft    mode) else id) $
+                  (if rank P.<= 3 then foreignAcc (PTX.fft    mode shR eR) else id) $
 #endif
                   Adhoc.fft mode
     in
@@ -94,12 +96,13 @@ fft1D :: forall e. Numeric e
 fft1D mode arr
   = let
         scale   = A.fromIntegral (A.length arr)
+        eR      = numericR @e
         go      =
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
-                  foreignAcc (Native.fft1D mode) $
+                  foreignAcc (Native.fft1D mode eR) $
 #endif
 #ifdef ACCELERATE_LLVM_PTX_BACKEND
-                  foreignAcc (PTX.fft1D mode) $
+                  foreignAcc (PTX.fft1D    mode eR) $
 #endif
                   Adhoc.fft mode
     in
@@ -120,12 +123,13 @@ fft2D :: forall e. Numeric e
 fft2D mode arr
   = let
         scale   = A.fromIntegral (A.size arr)
+        eR      = numericR @e
         go      =
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
-                  foreignAcc (Native.fft2D mode) $
+                  foreignAcc (Native.fft2D mode eR) $
 #endif
 #ifdef ACCELERATE_LLVM_PTX_BACKEND
-                  foreignAcc (PTX.fft2D mode) $
+                  foreignAcc (PTX.fft2D    mode eR) $
 #endif
                   fft'
 
@@ -149,12 +153,13 @@ fft3D :: forall e. Numeric e
       -> Acc (Array DIM3 (Complex e))
 fft3D mode arr
   = let scale   = A.fromIntegral (A.size arr)
+        eR      = numericR @e
         go      =
 #ifdef ACCELERATE_LLVM_NATIVE_BACKEND
-                  foreignAcc (Native.fft3D mode) $
+                  foreignAcc (Native.fft3D mode eR) $
 #endif
 #ifdef ACCELERATE_LLVM_PTX_BACKEND
-                  foreignAcc (PTX.fft3D mode) $
+                  foreignAcc (PTX.fft3D    mode eR) $
 #endif
                   fft'
 

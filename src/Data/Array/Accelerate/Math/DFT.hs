@@ -4,11 +4,10 @@
 {-# LANGUAGE TypeOperators       #-}
 -- |
 -- Module      : Data.Array.Accelerate.Math.DFT
--- Copyright   : [2012..2017] Manuel M T Chakravarty, Gabriele Keller, Trevor L. McDonell
---               [2013..2017] Robert Clifton-Everest
+-- Copyright   : [2012..2020] The Accelerate Team
 -- License     : BSD3
 --
--- Maintainer  : Trevor L. McDonell <tmcdonell@cse.unsw.edu.au>
+-- Maintainer  : Trevor L. McDonell <trevor.mcdonell@gmail.com>
 -- Stability   : experimental
 -- Portability : non-portable (GHC extensions)
 --
@@ -40,7 +39,7 @@ import Data.Array.Accelerate.Data.Complex
 
 -- | Compute the DFT along the low order dimension of an array
 --
-dft :: (Shape sh, Slice sh, Elt (Complex e), A.RealFloat e, A.FromIntegral Int e)
+dft :: (Shape sh, Slice sh, A.RealFloat e, A.FromIntegral Int e)
     => Acc (Array (sh:.Int) (Complex e))
     -> Acc (Array (sh:.Int) (Complex e))
 dft v = dftG (rootsOfUnity (shape v)) v
@@ -48,7 +47,7 @@ dft v = dftG (rootsOfUnity (shape v)) v
 
 -- | Compute the inverse DFT along the low order dimension of an array
 --
-idft :: (Shape sh, Slice sh, Elt (Complex e), A.RealFloat e, A.FromIntegral Int e)
+idft :: (Shape sh, Slice sh, A.RealFloat e, A.FromIntegral Int e)
      => Acc (Array (sh:.Int) (Complex e))
      -> Acc (Array (sh:.Int) (Complex e))
 idft v
@@ -66,7 +65,7 @@ idft v
 --
 --   The extent of the input and roots must match.
 --
-dftG :: forall sh e. (Shape sh, Slice sh, Elt (Complex e), A.RealFloat e)
+dftG :: forall sh e. (Shape sh, Slice sh, A.RealFloat e)
      => Acc (Array (sh:.Int) (Complex e))       -- ^ roots of unity
      -> Acc (Array (sh:.Int) (Complex e))       -- ^ input array
      -> Acc (Array (sh:.Int) (Complex e))
@@ -95,7 +94,7 @@ dftG roots arr
 
 -- | Compute a single value of the DFT.
 --
-dftGS :: forall sh e. (Shape sh, Slice sh, Elt (Complex e), A.RealFloat e)
+dftGS :: forall sh e. (Shape sh, Slice sh, A.RealFloat e)
       => Exp (sh :. Int)                        -- ^ index of the value we want
       -> Acc (Array (sh:.Int) (Complex e))      -- ^ roots of unity
       -> Acc (Array (sh:.Int) (Complex e))      -- ^ input array

@@ -7,10 +7,10 @@
 {-# LANGUAGE ViewPatterns        #-}
 -- |
 -- Module      : Test.FFT
--- Copyright   : [2017] Trevor L. McDonell
+-- Copyright   : [2017..2020] The Accelerate Team
 -- License     : BSD3
 --
--- Maintainer  : Trevor L. McDonell <tmcdonell@cse.unsw.edu.au>
+-- Maintainer  : Trevor L. McDonell <trevor.mcdonell@gmail.com>
 -- Stability   : experimental
 -- Portability : non-portable (GHC extensions)
 --
@@ -44,7 +44,7 @@ testFFT runN =
     ]
 
 testFFT'
-    :: forall e. (Numeric e, Similar e, RealFloat e, Show (ArgType e))
+    :: forall e. (Show e, Numeric e, Similar e, RealFloat e, Show (ArgType e))
     => Gen e
     -> RunN
     -> TestTree
@@ -110,7 +110,7 @@ scalar x = fromFunction Z (const x)
 
 
 test_homogeneity
-    :: (Numeric e, Similar e, Shape sh, Eq sh)
+    :: (Show e, Numeric e, Similar e, Show sh, Shape sh, Eq sh)
     => RunN
     -> Transform sh (Complex e)
     -> Gen sh
@@ -129,7 +129,7 @@ test_homogeneity runN transform dim e =
     go1 (scalar x) arr ~~~ go2 (scalar x) arr
 
 test_additivity
-    :: (Numeric e, Similar e, Shape sh, Eq sh)
+    :: (Show e, Numeric e, Similar e, Show sh, Shape sh, Eq sh)
     => RunN
     -> Transform sh (Complex e)
     -> Gen sh
@@ -148,7 +148,7 @@ test_additivity runN transform dim e =
     go1 xs ys ~~~ go2 xs ys
 
 test_inverse
-    :: (Numeric e, Similar e, Shape sh, Eq sh)
+    :: (Show e, Numeric e, Similar e, Show sh, Shape sh, Eq sh)
     => RunN
     -> Transform sh (Complex e)
     -> Gen sh
@@ -163,7 +163,7 @@ test_inverse runN transform dim e =
     xs ~~~ go xs
 
 test_reverse
-    :: (Numeric e, Similar e, Shape sh, Slice sh, Eq sh)
+    :: (Show e, Numeric e, Similar e, Show sh, Shape sh, Slice sh, Eq sh)
     => RunN
     -> Transform (sh:.Int) (Complex e)
     -> Gen (sh:.Int)
@@ -181,7 +181,7 @@ test_reverse runN transform dim e =
     go1 xs ~~~ go2 xs
 
 test_conjugate
-    :: (Numeric e, Similar e, Shape sh, Slice sh, Eq sh)
+    :: (Show e, Numeric e, Similar e, Show sh, Shape sh, Slice sh, Eq sh)
     => RunN
     -> Transform (sh:.Int) (Complex e)
     -> Gen (sh:.Int)
@@ -199,7 +199,7 @@ test_conjugate runN transform dim e =
     go1 xs ~~~ go2 xs
 
 test_isometry
-    :: forall sh e. (Numeric e, Similar e, Shape sh, Slice sh, Eq sh, P.Floating e)
+    :: forall sh e. (Show e, Numeric e, Similar e, Show sh, Shape sh, Slice sh, Eq sh, P.Floating e)
     => RunN
     -> Transform (sh:.Int) (Complex e)
     -> Gen (sh:.Int)
@@ -217,7 +217,7 @@ test_isometry runN transform dim e =
     go1 xs ~~~ go2 (scalar (sqrt (P.fromIntegral n))) xs
 
 test_unitarity
-    :: forall sh e. (Numeric e, Similar e, RealFloat e, Shape sh, Slice sh, Eq sh)
+    :: forall sh e. (Show e, Numeric e, Similar e, RealFloat e, Show sh, Shape sh, Slice sh, Eq sh)
     => RunN
     -> Transform (sh:.Int) (Complex e)
     -> Gen (sh:.Int)

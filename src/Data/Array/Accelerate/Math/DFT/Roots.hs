@@ -3,11 +3,10 @@
 {-# LANGUAGE TypeOperators    #-}
 -- |
 -- Module      : Data.Array.Accelerate.Math.DFT.Roots
--- Copyright   : [2012..2017] Manuel M T Chakravarty, Gabriele Keller, Trevor L. McDonell
---               [2013..2017] Robert Clifton-Everest
+-- Copyright   : [2012..2020] The Accelerate Team
 -- License     : BSD3
 --
--- Maintainer  : Trevor L. McDonell <tmcdonell@cse.unsw.edu.au>
+-- Maintainer  : Trevor L. McDonell <trevor.mcdonell@gmail.com>
 -- Stability   : experimental
 -- Portability : non-portable (GHC extensions)
 --
@@ -25,7 +24,7 @@ import Data.Array.Accelerate.Data.Complex
 -- | Calculate the roots of unity for the forward transform
 --
 rootsOfUnity
-    :: (Shape sh, Slice sh, Elt (Complex e), A.Floating e, A.FromIntegral Int e)
+    :: (Shape sh, Slice sh, A.Floating e, A.FromIntegral Int e)
     => Exp (sh :. Int)
     -> Acc (Array (sh:.Int) (Complex e))
 rootsOfUnity sh =
@@ -40,7 +39,7 @@ rootsOfUnity sh =
 -- | Calculate the roots of unity for an inverse transform
 --
 inverseRootsOfUnity
-    :: (Shape sh, Slice sh, Elt (Complex e), A.Floating e, A.FromIntegral Int e)
+    :: (Shape sh, Slice sh, A.Floating e, A.FromIntegral Int e)
     => Exp (sh :. Int)
     -> Acc (Array (sh:.Int) (Complex e))
 inverseRootsOfUnity sh =

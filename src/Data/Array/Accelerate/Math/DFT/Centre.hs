@@ -3,11 +3,10 @@
 {-# LANGUAGE TypeOperators    #-}
 -- |
 -- Module      : Data.Array.Accelerate.Math.DFT.Centre
--- Copyright   : [2012..2017] Manuel M T Chakravarty, Gabriele Keller, Trevor L. McDonell
---               [2013..2017] Robert Clifton-Everest
+-- Copyright   : [2012..2020] The Accelerate Team
 -- License     : BSD3
 --
--- Maintainer  : Trevor L. McDonell <tmcdonell@cse.unsw.edu.au>
+-- Maintainer  : Trevor L. McDonell <trevor.mcdonell@gmail.com>
 -- Stability   : experimental
 -- Portability : non-portable (GHC extensions)
 --
@@ -23,6 +22,7 @@ module Data.Array.Accelerate.Math.DFT.Centre (
 
   centre1D, centre2D, centre3D,
   shift1D,  shift2D,  shift3D,
+  ishift1D,  ishift2D,  ishift3D,
 
 ) where
 
@@ -34,7 +34,7 @@ import Data.Array.Accelerate.Data.Complex
 -- | Apply the centring transform to a vector
 --
 centre1D
-    :: (Elt (Complex e), A.RealFloat e, A.FromIntegral Int e)
+    :: (A.RealFloat e, A.FromIntegral Int e)
     => Acc (Array DIM1 (Complex e))
     -> Acc (Array DIM1 (Complex e))
 centre1D arr
@@ -45,7 +45,7 @@ centre1D arr
 -- | Apply the centring transform to a matrix
 --
 centre2D
-    :: (Elt (Complex e), A.RealFloat e, A.FromIntegral Int e)
+    :: (A.RealFloat e, A.FromIntegral Int e)
     => Acc (Array DIM2 (Complex e))
     -> Acc (Array DIM2 (Complex e))
 centre2D arr
@@ -56,7 +56,7 @@ centre2D arr
 -- | Apply the centring transform to a 3D array
 --
 centre3D
-    :: (Elt (Complex e), A.RealFloat e, A.FromIntegral Int e)
+    :: (A.RealFloat e, A.FromIntegral Int e)
     => Acc (Array DIM3 (Complex e))
     -> Acc (Array DIM3 (Complex e))
 centre3D arr
@@ -68,41 +68,97 @@ centre3D arr
 -- | Apply the shifting transform to a vector
 --
 shift1D :: Elt e => Acc (Vector e) -> Acc (Vector e)
-shift1D arr
-  = A.backpermute (A.shape arr) p arr
-  where
-    p ix
-      = let Z:.x = unlift ix :: Z :. Exp Int
-        in index1 (x A.< mw ? (x + mw, x - mw))
-    Z:.w    = unlift (A.shape arr)
-    mw      = w `div` 2
+shift1D arr = backpermute sh p arr
+      where
+        sh      = shape arr
+        n       = indexHead sh
+        --
+        shift   = (n `quot` 2) + boolToInt (A.odd n)
+        roll i  = (i+shift) `rem` n
+        p       = ilift1 roll
 
+-- | The inverse of the shift1D function, such that
+-- > ishift1D (shift1D v) = ishift1D (shift1D v) = v
+-- for all vectors
+--
+ishift1D :: Elt e => Acc (Vector e) -> Acc (Vector e)
+ishift1D arr = backpermute sh p arr
+      where
+        sh      = shape arr
+        n       = indexHead sh
+        --
+        shift   = (n `quot` 2)-- + boolToInt (A.odd n)
+        roll i  = (i+shift) `rem` n
+        p       = ilift1 roll
 
 -- | Apply the shifting transform to a 2D array
 --
 shift2D :: Elt e => Acc (Array DIM2 e) -> Acc (Array DIM2 e)
 shift2D arr
-  = A.backpermute (A.shape arr) p arr
+  = backpermute sh p arr
   where
+    sh      = shape arr
+    Z :. h :. w = unlift sh
+    --
+    shifth = (h `quot` 2) + boolToInt (A.odd h)
+    shiftw = (w `quot` 2) + boolToInt (A.odd w)
+
     p ix
       = let Z:.y:.x = unlift ix :: Z :. Exp Int :. Exp Int
-        in index2 (y A.< mh ? (y + mh, y - mh))
-                  (x A.< mw ? (x + mw, x - mw))
-    Z:.h:.w = unlift (A.shape arr)
-    (mh,mw) = (h `div` 2, w `div` 2)
+        in index2 ((y + shifth) `rem` h)
+                  ((x + shiftw) `rem` w)
 
+-- | The inverse of the shift2D function
+--
+ishift2D :: Elt e => Acc (Array DIM2 e) -> Acc (Array DIM2 e)
+ishift2D arr
+  = backpermute sh p arr
+  where
+    sh      = shape arr
+    Z :. h :. w = unlift sh
+    --
+    shifth = (h `quot` 2)
+    shiftw = (w `quot` 2)
+
+    p ix
+      = let Z:.y:.x = unlift ix :: Z :. Exp Int :. Exp Int
+        in index2 ((y + shifth) `rem` h)
+                  ((x + shiftw) `rem` w)
 
 -- | Apply the shifting transform to a 3D array
 --
 shift3D :: Elt e => Acc (Array DIM3 e) -> Acc (Array DIM3 e)
 shift3D arr
-  = A.backpermute (A.shape arr) p arr
+  = backpermute sh p arr
   where
+    sh      = shape arr
+    Z :. d :. h :. w = unlift sh
+    --
+    shiftd = (d `quot` 2) + boolToInt (A.odd d)
+    shifth = (h `quot` 2) + boolToInt (A.odd h)
+    shiftw = (w `quot` 2) + boolToInt (A.odd w)
+
     p ix
       = let Z:.z:.y:.x = unlift ix :: Z :. Exp Int :. Exp Int :. Exp Int
-        in index3 (z A.< md ? (z + md, z - md))
-                  (y A.< mh ? (y + mh, y - mh))
-                  (x A.< mw ? (x + mw, x - mw))
-    Z:.h:.w:.d   = unlift (A.shape arr)
-    (mh,mw,md)   = (h `div` 2, w `div` 2, d `div` 2)
+        in index3 ((z + shiftd) `rem` d)
+                  ((y + shifth) `rem` h)
+                  ((x + shiftw) `rem` w)
 
+-- | The inverse of the shift3D function
+--
+ishift3D :: Elt e => Acc (Array DIM3 e) -> Acc (Array DIM3 e)
+ishift3D arr
+  = backpermute sh p arr
+  where
+    sh      = shape arr
+    Z :. d :. h :. w = unlift sh
+    --
+    shiftd = (d `quot` 2)
+    shifth = (h `quot` 2)
+    shiftw = (w `quot` 2)
+
+    p ix
+      = let Z:.z:.y:.x = unlift ix :: Z :. Exp Int :. Exp Int :. Exp Int
+        in index3 ((z + shiftd) `rem` d)
+                  ((y + shifth) `rem` h)
+                  ((x + shiftw) `rem` w)
