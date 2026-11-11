@@ -16,6 +16,10 @@
 module Data.Array.Accelerate.Math.FFT.LLVM.PTX.Base
   where
 
+import Control.Concurrent.MVar
+import Control.Exception (evaluate)
+import Control.Monad.Catch
+import Control.Monad.IO.Class
 import Data.Array.Accelerate.Math.FFT.Type
 
 import Data.Array.Accelerate.Array.Data
@@ -57,9 +61,17 @@ withArrayData NumericRfloat64 ad s k =
     return (Just e, r)
 
 {-# INLINE withLifetime' #-}
-withLifetime' :: Lifetime a -> (a -> LLVM PTX b) -> LLVM PTX b
+withLifetime' :: MonadIO m => Lifetime a -> (a -> m b) -> m b
 withLifetime' l k = do
   r <- k (unsafeGetValue l)
   liftIO $ touchLifetime l
   return r
 
+{-# INLINE modifyMVar' #-}
+modifyMVar' :: (MonadIO m, MonadMask m) => MVar a -> (a -> m (a,b)) -> m b
+modifyMVar' m io =
+  mask $ \restore -> do
+    a <- liftIO (takeMVar m)
+    (a',b) <- restore (io a >>= liftIO . evaluate) `onException` liftIO (putMVar m a)
+    liftIO (putMVar m a')
+    return b

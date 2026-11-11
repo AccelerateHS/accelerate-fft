@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE PatternGuards       #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 {-# LANGUAGE TypeApplications    #-}
@@ -92,14 +93,14 @@ fft' plans mode shR eR =
         aout    <- allocateRemote aR sh
         stream  <- asks ptxStream
         future  <- new
-        liftPar $
-          withArray eR ain stream   $ \d_in  -> do
-           withArray eR aout stream $ \d_out -> do
-            withPlan plans (sh,t)   $ \h     -> do
-              liftIO $ cuFFT eR h mode stream (castDevPtr d_in) (castDevPtr d_out)
-        --
-        put future aout
-        return future
+        withPlan plans (sh,t) $ \h -> do
+          liftPar $
+            withArray eR ain stream $ \d_in -> do
+              withArray eR aout stream $ \d_out -> do
+                liftIO $ cuFFT eR h mode stream (castDevPtr d_in) (castDevPtr d_out)
+          --
+          put future aout
+          return future
   in
   case eR of
     NumericRfloat32 -> go (ArrayR shR (eltR @(Complex Float)))
